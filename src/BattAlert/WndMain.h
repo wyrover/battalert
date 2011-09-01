@@ -21,8 +21,7 @@ public :
   WndMain (Application* pApplication);
   virtual ~WndMain (void);
 
-  void Open  (void);
-  void Close (void);
+  void Open (void);
 
 
 private :

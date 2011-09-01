@@ -8,7 +8,7 @@
 #define SYSTRAYICON_ID  1
 
 #define TIMER_POWERPOLL_ID       1
-#define TIMER_POWERPOLL_DELAYMS  10000
+#define TIMER_POWERPOLL_DELAYMS  (15 * 1000)
 
 
 //---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ WndMain::WndMain (Application* pApplication)
   ms_pThis = this;
 
   // init members
-  m_hMenuMainPopup  = NULL;
+  m_hMenuMainPopup = NULL;
 
   // create window's class
   {
@@ -93,21 +93,9 @@ void WndMain::Open (void)
   }
 
   // create a message-only window
-  m_hWnd = ::CreateWindowEx(0, APP_UNIQUE_WNDCLASS_MAIN, "Main", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, g_App().GetInstanceHandle(), NULL);
+  m_hWnd = ::CreateWindowEx(0, APP_UNIQUE_WNDCLASS_MAIN, "Main", 0, 0, 0, 0, 0, NULL, NULL, g_App().GetInstanceHandle(), NULL);
   if (!m_hWnd)
     XTHROW EXCODE_SYSTEM_GENERIC, "Failed to create main window ! Error %u : %s", System::LastError(), System::LastErrorString());
-}
-
-//---------------------------------------------------------------------------
-// Close
-//---------------------------------------------------------------------------
-void WndMain::Close (void)
-{
-  if (m_hWnd)
-  {
-    ::DestroyWindow(m_hWnd);
-    m_hWnd = NULL;
-  }
 }
 
 
@@ -224,7 +212,7 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       switch (LOWORD(wParam))
       {
         case IDM_QUIT :
-          ms_pThis->Close();
+          ms_pThis->Destroy();
           break;
 
         default :
@@ -246,7 +234,8 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       break;
 
     case WM_ENDSESSION :
-      ms_pThis->Close();
+      CORELOG LLINFO, "Got WM_ENDSESSION message !");
+      ms_pThis->Destroy();
       break;
 
     case WM_TIMER :
@@ -261,11 +250,17 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       }
       break;
 
-    case WM_POWER :
     case WM_POWERBROADCAST :
-      CORELOG LLDEBUG, "POWER BCAST wParam(0x%X) !", wParam);
-      ms_pThis->OnPollPowerStatus();
-      return DefWindowProc(hWnd, uiMsg, wParam, lParam);
+      switch (wParam)
+      {
+        case PBT_APMPOWERSTATUSCHANGE :
+          ms_pThis->OnPollPowerStatus();
+          break;
+
+        default :
+          return DefWindowProc(hWnd, uiMsg, wParam, lParam);
+      }
+      break;
 
     default :
       return DefWindowProc(hWnd, uiMsg, wParam, lParam);

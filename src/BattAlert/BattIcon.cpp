@@ -202,7 +202,9 @@ HICON BattIcon::Refresh (void)
     SetBkMode(m_hDcIcon, TRANSPARENT);
     FillRect(m_hDcIcon, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
 
-    if (m_SPS.BatteryLifePercent > 10)
+    if (m_SPS.BatteryLifePercent > 99)
+      SetTextColor(m_hDcIcon, RGB(0, 255, 0));
+    else if (m_SPS.BatteryLifePercent > 10)
       SetTextColor(m_hDcIcon, RGB(255, 255, 255));
     else if (m_SPS.BatteryLifePercent > 3)
       SetTextColor(m_hDcIcon, RGB(255, 255, 0));
@@ -224,12 +226,12 @@ HICON BattIcon::Refresh (void)
     {
       str.Format("%i:%02i", nHours, nMinutes);
 
-      if (m_SPS.BatteryLifeTime <= 15*60)
-        SetTextColor(m_hDcIcon, RGB(255, 255, 0));
-      else if (m_SPS.BatteryLifeTime <= 5*60)
-        SetTextColor(m_hDcIcon, RGB(255, 0, 0));
-      else
+      if (m_SPS.BatteryLifeTime > 15 * 60)
         SetTextColor(m_hDcIcon, RGB(255, 255, 255));
+      else if (m_SPS.BatteryLifeTime > 5 * 60)
+        SetTextColor(m_hDcIcon, RGB(255, 255, 0));
+      else
+        SetTextColor(m_hDcIcon, RGB(255, 0, 0));
     }
     else
     {
