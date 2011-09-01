@@ -278,6 +278,12 @@
 				RelativePath="..\..\src\BattAlert\Application.inl.h">
 			</File>
 			<File
+				RelativePath="..\..\src\BattAlert\BattIcon.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\BattAlert\BattIcon.h">
+			</File>
+			<File
 				RelativePath="..\..\src\BattAlert\OwnLogger.cpp">
 			</File>
 			<File
@@ -604,10 +610,19 @@
 			Name="Resources"
 			Filter="">
 			<File
+				RelativePath="..\..\src\BattAlert\04B_03__.ttf">
+			</File>
+			<File
+				RelativePath="..\..\src\BattAlert\04B_24__.ttf">
+			</File>
+			<File
 				RelativePath="..\..\src\BattAlert\BattAlert.rc">
 			</File>
 			<File
 				RelativePath="..\..\src\BattAlert\IcoApp.ico">
+			</File>
+			<File
+				RelativePath="..\..\src\BattAlert\IcoNoBatt.ico">
 			</File>
 			<File
 				RelativePath="..\..\src\BattAlert\resource.h">

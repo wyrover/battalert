@@ -5,7 +5,10 @@
 //---------------------------------------------------------------------------
 // Constants
 //---------------------------------------------------------------------------
-#define SYSTRAYICON_STATUS  1
+#define SYSTRAYICON_ID  1
+
+#define TIMER_POWERPOLL_ID       1
+#define TIMER_POWERPOLL_DELAYMS  10000
 
 
 //---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ WndMain::WndMain (Application* pApplication)
   ms_pThis = this;
 
   // init members
-  m_hMenuMainPopup = NULL;
+  m_hMenuMainPopup  = NULL;
 
   // create window's class
   {
@@ -75,6 +78,20 @@ void WndMain::Open (void)
   if (!m_hMenuMainPopup)
     XTHROW EXCODE_SYSTEM_GENERIC, "Unable to create the main popup menu ! Error %u : %s", System::LastError(), System::LastErrorString());
 
+  // prepend the application title to the popup menu
+  {
+    MENUITEMINFO mii;
+
+    mii.cbSize     = sizeof(MENUITEMINFO);
+    mii.fMask      = MIIM_FTYPE | MIIM_STRING | MIIM_STATE;
+    mii.fType      = MFT_STRING;
+    mii.fState     = MFS_DISABLED;
+    mii.dwTypeData = (char*)m_pApp->GetTitle().c_str();
+    mii.cch        = m_pApp->GetTitle().Length();
+
+    InsertMenuItem(m_hMenuMainPopup, 0, TRUE, &mii);
+  }
+
   // create a message-only window
   m_hWnd = ::CreateWindowEx(0, APP_UNIQUE_WNDCLASS_MAIN, "Main", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, g_App().GetInstanceHandle(), NULL);
   if (!m_hWnd)
@@ -108,13 +125,16 @@ void WndMain::OnCreate (void)
   // show default systray icon
   nid.cbSize           = sizeof(NOTIFYICONDATA);
   nid.hWnd             = m_hWnd;
-  nid.uID              = SYSTRAYICON_STATUS;
+  nid.uID              = SYSTRAYICON_ID;
   nid.uFlags           = NIF_ICON | NIF_TIP | NIF_MESSAGE;
   nid.uCallbackMessage = APP_UNIQUE_WM_SYSTRAYICON;
-  nid.hIcon            = ::LoadIcon(g_App().GetInstanceHandle(), MAKEINTRESOURCE(IDI_APP));
+  nid.hIcon            = m_BattIcon.GetDefaultIcon();
   strcpy((char*)nid.szTip, this->GetTitle().c_str());
   if (!Shell_NotifyIcon(NIM_ADD, &nid))
     XTHROW EXCODE_SYSTEM_GENERIC, "Failed to show system tray icon ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+
+  // force refresh battery status
+  this->OnPollPowerStatus();
 }
 
 //---------------------------------------------------------------------------
@@ -124,10 +144,13 @@ void WndMain::OnDestroy (void)
 {
   NOTIFYICONDATA nid;
 
+  // destroy "power poll" timer
+  KillTimer(m_hWnd, TIMER_POWERPOLL_ID);
+
   // remove systray icon
   nid.cbSize = sizeof(NOTIFYICONDATA);
   nid.hWnd   = m_hWnd;
-  nid.uID    = SYSTRAYICON_STATUS;
+  nid.uID    = SYSTRAYICON_ID;
   Shell_NotifyIcon(NIM_DELETE, &nid);
 
   // quit application
@@ -145,6 +168,38 @@ void WndMain::OnPopupMenu (const POINT& pt)
   PostMessage(m_hWnd, WM_NULL, 0, 0); // idem
 }
 
+//---------------------------------------------------------------------------
+// OnPollPowerStatus
+//---------------------------------------------------------------------------
+void WndMain::OnPollPowerStatus (void)
+{
+  HICON hIcon;
+
+  // get new icon to show
+  hIcon = m_BattIcon.Refresh();
+
+  // update system tray icon
+  {
+    NOTIFYICONDATA nid;
+
+    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.hWnd   = m_hWnd;
+    nid.uID    = SYSTRAYICON_ID;
+    nid.uFlags = NIF_ICON | NIF_TIP;
+    nid.hIcon  = hIcon;
+
+    strcpy((char*)nid.szTip, m_BattIcon.GetStatusString().c_str());
+    strcat((char*)nid.szTip, " - ");
+    strcat((char*)nid.szTip, m_pApp->GetTitle().c_str());
+
+    if (!Shell_NotifyIcon(NIM_MODIFY, &nid))
+      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to modify icon in the System Tray ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+  }
+
+  // reset timer (in case we were not called because of a WM_TIMER message)
+  if (!SetTimer(m_hWnd, TIMER_POWERPOLL_ID, TIMER_POWERPOLL_DELAYMS, NULL))
+    XTHROW EXCODE_SYSTEM_GENERIC, "Failed to setup polling timer ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+}
 
 
 //---------------------------------------------------------------------------
@@ -154,7 +209,7 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
 {
   POINT pt;
 
-  switch(uiMsg)
+  switch (uiMsg)
   {
     case WM_CREATE :
       ms_pThis->m_hWnd = hWnd;
@@ -166,7 +221,7 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       break;
 
     case WM_COMMAND :
-      switch(LOWORD(wParam))
+      switch (LOWORD(wParam))
       {
         case IDM_QUIT :
           ms_pThis->Close();
@@ -178,7 +233,7 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       break;
 
     case APP_UNIQUE_WM_SYSTRAYICON :
-      switch(LOWORD(lParam)) // HIWORD(lParam) contains the icon ID.
+      switch (LOWORD(lParam)) // HIWORD(lParam) contains the icon ID.
       {
         case WM_RBUTTONUP :
           GetCursorPos(&pt);
@@ -189,6 +244,28 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
           return DefWindowProc(hWnd, uiMsg, wParam, lParam);
       }
       break;
+
+    case WM_ENDSESSION :
+      ms_pThis->Close();
+      break;
+
+    case WM_TIMER :
+      switch (wParam)
+      {
+        case TIMER_POWERPOLL_ID :
+          ms_pThis->OnPollPowerStatus();
+          break;
+
+        default :
+          return DefWindowProc(hWnd, uiMsg, wParam, lParam);
+      }
+      break;
+
+    case WM_POWER :
+    case WM_POWERBROADCAST :
+      CORELOG LLDEBUG, "POWER BCAST wParam(0x%X) !", wParam);
+      ms_pThis->OnPollPowerStatus();
+      return DefWindowProc(hWnd, uiMsg, wParam, lParam);
 
     default :
       return DefWindowProc(hWnd, uiMsg, wParam, lParam);

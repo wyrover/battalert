@@ -91,9 +91,9 @@ void Application::Uninit (void)
 int Application::Init (int argc, const char** argv)
 {
   // dynamic configuration settings
-  m_pAppConfig = new AppConfig();
-  if (!m_pAppConfig->Load())
-    return 1;
+  //m_pAppConfig = new AppConfig();
+  //if (!m_pAppConfig->Load())
+  //  return 1;
 
   // create windows & dialogs
   m_pWndMain = new WndMain(this);

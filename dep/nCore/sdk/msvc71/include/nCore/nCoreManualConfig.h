@@ -72,7 +72,7 @@
 //   sure your client application will ever have only one running instance at
 //   time.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_MULTI_PROCESS_AWARENESS
+//#define NCORE_ENABLE_MULTI_PROCESS_AWARENESS
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_INTERNAL_MEMORY_MANAGER
@@ -98,7 +98,7 @@
 //
 // * Enables File, FileDisk, FileMem and Streamer classes.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_FILEIO
+//#define NCORE_ENABLE_FILEIO
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_MULTITHREADING
@@ -112,7 +112,7 @@
 // * But if you are sure your program will be single threaded, you can safely
 //   disable this feature.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_MULTITHREADING
+//#define NCORE_ENABLE_MULTITHREADING
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_NETWORKING
@@ -123,7 +123,7 @@
 //   API (getnameinfo(), etc...).
 //---------------------------------------------------------------------------
 #ifndef NCORE_PLATFORM_CYGWIN
-#define NCORE_ENABLE_NETWORKING
+//#define NCORE_ENABLE_NETWORKING
 #endif
 
 //---------------------------------------------------------------------------
@@ -164,7 +164,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_BUILDDATE
+//#define NCORE_ENABLE_UTIL_BUILDDATE
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_BUILDDATETIME
@@ -184,7 +184,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_CRC8
+//#define NCORE_ENABLE_UTIL_CRC8
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_CRC16
@@ -193,7 +193,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_CRC16
+//#define NCORE_ENABLE_UTIL_CRC16
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_CRC32
@@ -202,7 +202,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_CRC32
+//#define NCORE_ENABLE_UTIL_CRC32
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_CONFIG_FILE
@@ -220,21 +220,21 @@
 // * To know more about dog-tags in nCore, be sure to read comments in the
 //   <nCore/DogTags.h> header.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_DOGTAGS
+//#define NCORE_ENABLE_UTIL_DOGTAGS
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_DYNAMIC_LIBRARY
 //
 // * Enables the DynamicLibrary util class.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_DYNAMIC_LIBRARY
+//#define NCORE_ENABLE_UTIL_DYNAMIC_LIBRARY
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_FILE_ITERATOR
 //
 // * Enables the FileIterator util class.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_FILE_ITERATOR
+//#define NCORE_ENABLE_UTIL_FILE_ITERATOR
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_GUID
@@ -254,7 +254,7 @@
 //              from the <CoreFoundation/CFUUID.h> header.
 //---------------------------------------------------------------------------
 #ifndef NCORE_PLATFORM_CYGWIN
-#define NCORE_ENABLE_UTIL_GUID
+//#define NCORE_ENABLE_UTIL_GUID
 #endif
 
 //---------------------------------------------------------------------------
@@ -264,7 +264,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_MD5
+//#define NCORE_ENABLE_UTIL_MD5
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_SHA1
@@ -273,7 +273,7 @@
 // * If you don't need it, you can disable it to reduce the final size of the
 //   library.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_SHA1
+//#define NCORE_ENABLE_UTIL_SHA1
 
 //---------------------------------------------------------------------------
 // NCORE_ENABLE_UTIL_STRINGBASE
@@ -296,7 +296,7 @@
 //
 // * Enables the Version2 util class.
 //---------------------------------------------------------------------------
-#define NCORE_ENABLE_UTIL_VERSION2
+//#define NCORE_ENABLE_UTIL_VERSION2
 
 
 #endif // #ifndef __nCore_ManualConfig_Header__

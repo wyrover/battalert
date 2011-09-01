@@ -76,9 +76,13 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
     // * the system will close the mutex handle automatically when the
     //   process will terminate, so there's no need to CloseHandle() after
     //   that.
-    //::CreateMutex(NULL, FALSE, APP_UNIQUE_INSTANCE_NAME);
-    //if (::GetLastError() == ERROR_ALREADY_EXISTS)
-    //  return 2;
+    ::CreateMutex(NULL, FALSE, APP_UNIQUE_INSTANCE_NAME
+#ifdef X_DEBUG
+      "DEBUG"
+#endif
+      );
+    if (::GetLastError() == ERROR_ALREADY_EXISTS)
+      return 2;
 
     // parse command line
     _ParseWinCommandLine(&nArgc, &pArgv);

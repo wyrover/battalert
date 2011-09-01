@@ -35,6 +35,10 @@
 //---------------------------------------------------------------------------
 // External Includes
 //---------------------------------------------------------------------------
+// required to use AddFontMemResourceEx
+//#define WINVER        0x500
+#define _WIN32_WINNT  0x500
+
 // nCore header
 #include <nCore/_nCore.h>
 
@@ -77,6 +81,7 @@ using namespace nCore;
 // application
 #include "AppConfig.h"
 #include "Application.h"
+#include "BattIcon.h"
 #include "WndMain.h"
 
 

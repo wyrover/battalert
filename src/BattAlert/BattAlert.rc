@@ -29,6 +29,7 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_APP                 ICON                    "IcoApp.ico"
+IDI_NOBATT              ICON                    "IcoNoBatt.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -44,6 +45,14 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// FONTS
+//
+
+IDF_SMALL               FONTS                   "04B_24__.ttf"
+IDF_NORMAL              FONTS                   "04B_03__.ttf"
 #endif    // Neutre resources
 /////////////////////////////////////////////////////////////////////////////
 

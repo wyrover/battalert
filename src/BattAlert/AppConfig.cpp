@@ -151,7 +151,6 @@ bool AppConfig::Save (void)
 {
   ConfigFile cfg;
 
-
   // if config file does not already exist create it first
   if (!FileSystem::DoesExist(m_strConfigFilePath.c_str()))
   {

@@ -10,7 +10,7 @@ set dir_obj=%dir_root%\obj
 
 :: create required directories
 if not exist "%dir_bin%" mkdir "%dir_bin%"
-if not exist "%dir_lib%" mkdir "%dir_lib%"
+::if not exist "%dir_lib%" mkdir "%dir_lib%"
 
 :: parse parameters
 if "%1"=="" (set buildtype=debug) else (set buildtype=%1)
