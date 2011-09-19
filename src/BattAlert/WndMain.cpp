@@ -180,8 +180,13 @@ void WndMain::OnPollPowerStatus (void)
     strcat((char*)nid.szTip, " - ");
     strcat((char*)nid.szTip, m_pApp->GetTitle().c_str());
 
-    if (!Shell_NotifyIcon(NIM_MODIFY, &nid))
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to modify icon in the System Tray ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+    for (int i = 0; i < 2; ++i)
+    {
+      if (Shell_NotifyIcon(NIM_MODIFY, &nid))
+        break;
+      CORELOG LLERROR, "Failed to modify icon in the System Tray (pass #%i) ! Error (%lu) : %s", i, System::LastError(), System::LastErrorString());
+      System::Sleep(2000);
+    }
   }
 
   // reset timer (in case we were not called because of a WM_TIMER message)
