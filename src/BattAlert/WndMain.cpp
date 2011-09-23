@@ -239,7 +239,7 @@ LRESULT CALLBACK WndMain::WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       break;
 
     case WM_ENDSESSION :
-      CORELOG LLINFO, "Got WM_ENDSESSION message !");
+      //CORELOG LLINFO, "Got WM_ENDSESSION message !");
       ms_pThis->Destroy();
       break;
 
