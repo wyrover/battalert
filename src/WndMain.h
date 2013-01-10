@@ -37,7 +37,7 @@ private :
   void onCreate          (void);
   void onDestroy         (void);
   void onPopupMenu       (const POINT& ptPos);
-  void onPollPowerStatus (void);
+  void onPollPowerStatus (bool bForceRefresh);
 
   // window's events switcher
   static LRESULT CALLBACK wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
@@ -46,6 +46,7 @@ private :
 private :
   HMENU    m_hMenuMainPopup;
   BattIcon m_BattIcon;
+  UINT     m_uiLastPollTick;
 
 
 private :

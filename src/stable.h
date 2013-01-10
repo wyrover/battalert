@@ -30,6 +30,22 @@
 
 
 //---------------------------------------------------------------------------
+// Constants (App)
+//---------------------------------------------------------------------------
+// max resolution (SetTimer())
+#define TIMER_MAX_RESOLUTION_MS  55
+
+// alert mode will be turned on if remaining battery power
+// is <= ALERT_BLINK_PERCENT percents in non-charging mode.
+#define ALERT_BLINK_PERCENT       4
+#define ALERT_BLINK_FREQUENCY_MS  750 // milliseconds
+
+// alert sound will be played if battery power reaches ALERT_SOUND_PERCENT
+// percents in non-charging mode.
+#define ALERT_SOUND_PERCENT  2
+
+
+//---------------------------------------------------------------------------
 // Macros
 //---------------------------------------------------------------------------
 // use this to make your code uncompilable until you remove it

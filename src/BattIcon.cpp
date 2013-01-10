@@ -22,10 +22,12 @@ BattIcon::BattIcon (void)
   // system power status
   m_bHavePowerStatus = false;
   ZeroMemory(&m_SPS, sizeof(m_SPS));
+  m_eBlink = BLINK_DISABLED;
 
   // load icons
   m_hIconDefault = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_APP));
   m_hIconNoBatt  = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_NOBATT));
+  m_hIconBlink   = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_RED));
 
   // system tray icon
   {
@@ -146,6 +148,7 @@ HICON BattIcon::refresh (void)
   {
     m_bHavePowerStatus = false;
     m_strStatus = "Failed to query power status !";
+    m_eBlink = BLINK_DISABLED;
     return m_hIconDefault;
   }
 
@@ -153,26 +156,42 @@ HICON BattIcon::refresh (void)
   if (m_SPS.BatteryFlag & 128) // no system battery
   {
     m_strStatus = "No battery";
+    m_eBlink = BLINK_DISABLED;
     return m_hIconNoBatt;
   }
   if (m_SPS.ACLineStatus != 0 && m_SPS.ACLineStatus != 1) // unknown AC status
   {
     m_strStatus = "Unknown AC status";
+    m_eBlink = BLINK_DISABLED;
     return m_hIconDefault;
   }
   if (m_SPS.BatteryLifePercent > 100) // unknown battery status
   {
     m_strStatus = "Unknown battery status";
+    m_eBlink = BLINK_DISABLED;
     return m_hIconDefault;
   }
 
   // prepare status strings
   if (m_SPS.BatteryFlag & 8) // charging
   {
+    m_eBlink = BLINK_DISABLED;
     m_strStatus.format("Charging (%u%%)", m_SPS.BatteryLifePercent);
   }
   else
   {
+    if (m_SPS.ACLineStatus != 1) // ac power NOT online
+    {
+      m_eBlink =
+        (m_SPS.BatteryLifePercent <= ALERT_BLINK_PERCENT) ?
+        ((m_eBlink == BLINK_ON) ? BLINK_OFF : BLINK_ON) :
+        BLINK_DISABLED;
+    }
+    else
+    {
+      m_eBlink = BLINK_DISABLED;
+    }
+
     m_strStatus.format("%u%%", m_SPS.BatteryLifePercent);
     if (m_SPS.BatteryLifeTime != (DWORD)-1)
     {
@@ -193,6 +212,10 @@ HICON BattIcon::refresh (void)
     }
     m_strStatus += " remaining";
   }
+
+  // blink ?
+  if (m_eBlink == BLINK_ON)
+    return m_hIconBlink;
 
   // refresh icon content
   {

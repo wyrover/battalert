@@ -15,8 +15,9 @@
 //---------------------------------------------------------------------------
 #define SYSTRAYICON_ID  1
 
-#define TIMER_POWERPOLL_ID       1
-#define TIMER_POWERPOLL_DELAYMS  (15 * 1000)
+#define TIMER_POWERPOLL_ID               1
+#define TIMER_POWERPOLL_DELAYMS          (15 * 1000)
+#define TIMER_POWERPOLL_DELAYMS_ONERROR  (3 * 1000) // must be faster than TIMER_POWERPOLL_DELAYMS
 
 
 //---------------------------------------------------------------------------
@@ -35,6 +36,7 @@ WndMain::WndMain (void)
 
   // init members
   m_hMenuMainPopup = 0;
+  m_uiLastPollTick = 0;
 
   // create window's class
   {
@@ -126,7 +128,7 @@ void WndMain::onCreate (void)
     THROWEX("Failed to show system tray icon! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
 
   // force refresh battery status
-  this->onPollPowerStatus();
+  this->onPollPowerStatus(true);
 }
 
 //---------------------------------------------------------------------------
@@ -157,37 +159,71 @@ void WndMain::onPopupMenu (const POINT& pt)
 }
 
 //---------------------------------------------------------------------------
-void WndMain::onPollPowerStatus (void)
+void WndMain::onPollPowerStatus (bool bForceRefresh)
 {
-  HICON hIcon;
-  BOOL  bRes;
+  UINT uiNow = GetTickCount();
+  UINT uiNextPollMS;
+  UINT uiMaximumFrequency =
+    m_BattIcon.isBlinking() ?
+    ALERT_BLINK_FREQUENCY_MS :
+    TIMER_POWERPOLL_DELAYMS_ONERROR;
 
-  // get new icon to show
-  hIcon = m_BattIcon.refresh();
+  //LOGINFO("Poll (now:%u diff:%u)", uiNow, uiNow - m_uiLastPollTick);
 
-  // update system tray icon
+  // poll power status and refresh icon ?
+  // first we must ensure we are not refreshing too often
+  if (!bForceRefresh &&
+    (uiNow >= m_uiLastPollTick) &&
+    (uiNow - m_uiLastPollTick) < uiMaximumFrequency)
   {
-    NOTIFYICONDATA nid;
-
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd   = m_hWnd;
-    nid.uID    = SYSTRAYICON_ID;
-    nid.uFlags = NIF_ICON | NIF_TIP;
-    nid.hIcon  = hIcon;
-
-    strcpy((char*)nid.szTip, m_BattIcon.getStatusString().c_str());
-    strcat((char*)nid.szTip, " - ");
-    strcat((char*)nid.szTip, App::title().c_str());
-
-    bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
-    if (!bRes && App::sysLastError() != ERROR_TIMEOUT)
-      LOGERR("Failed to update system tray icon! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+    uiNextPollMS = uiMaximumFrequency - (uiNow - m_uiLastPollTick);
   }
+  else
+  {
+    HICON hIcon;
+    BOOL  bRes;
+
+    // get new icon to show
+    hIcon = m_BattIcon.refresh();
+
+    // update system tray icon
+    {
+      NOTIFYICONDATA nid;
+
+      nid.cbSize = sizeof(NOTIFYICONDATA);
+      nid.hWnd   = m_hWnd;
+      nid.uID    = SYSTRAYICON_ID;
+      nid.uFlags = NIF_ICON | NIF_TIP;
+      nid.hIcon  = hIcon;
+
+      strcpy((char*)nid.szTip, m_BattIcon.getStatusString().c_str());
+      strcat((char*)nid.szTip, " - ");
+      strcat((char*)nid.szTip, App::title().c_str());
+
+      bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
+      if (!bRes && App::sysLastError() != ERROR_TIMEOUT)
+        LOGERR("Failed to update system tray icon! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+    }
+
+    // choose next poll's delay
+    if (m_BattIcon.isBlinking())
+      uiNextPollMS = ALERT_BLINK_FREQUENCY_MS;
+    else if (!bRes) // in case Shell_NotifyIcon(), try more frequently than TIMER_POWERPOLL_DELAYMS
+      uiNextPollMS = TIMER_POWERPOLL_DELAYMS_ONERROR;
+    else
+      uiNextPollMS = TIMER_POWERPOLL_DELAYMS;
+  }
+
+  m_uiLastPollTick = uiNow;
 
   // reset timer (in case we were not called because of a WM_TIMER message)
   // update much more frequently if Shell_NotifyIcon() failed
-  if (!SetTimer(m_hWnd, TIMER_POWERPOLL_ID, bRes ? TIMER_POWERPOLL_DELAYMS : 1000, NULL))
-    THROWEX("Failed to setup polling timer! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
+  if (uiNextPollMS < TIMER_MAX_RESOLUTION_MS)
+    uiNextPollMS = TIMER_MAX_RESOLUTION_MS;
+  if (uiNextPollMS > TIMER_POWERPOLL_DELAYMS)
+    uiNextPollMS = TIMER_POWERPOLL_DELAYMS;
+  if (!SetTimer(m_hWnd, TIMER_POWERPOLL_ID, uiNextPollMS, NULL))
+    THROWEX("Failed to setup polling timer to %u milliseconds! Error %lu: %s", uiNextPollMS, App::sysLastError(), App::sysLastErrorString());
 }
 
 
@@ -242,7 +278,7 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       switch (wParam)
       {
         case TIMER_POWERPOLL_ID :
-          ms_pThis->onPollPowerStatus();
+          ms_pThis->onPollPowerStatus(false);
           break;
 
         default :
@@ -254,7 +290,7 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       switch (wParam)
       {
         case PBT_APMPOWERSTATUSCHANGE :
-          ms_pThis->onPollPowerStatus();
+          ms_pThis->onPollPowerStatus(true);
           break;
 
         default :
