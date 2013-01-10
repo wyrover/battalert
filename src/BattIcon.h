@@ -1,6 +1,15 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-10 15:26:13
+//
+// $Id$
+//
+//***************************************************************************
 
-#ifndef __BattIcon_Header__
-#define __BattIcon_Header__
+
+#ifndef __BattIcon_h__
+#define __BattIcon_h__
 
 
 //---------------------------------------------------------------------------
@@ -12,10 +21,10 @@ public :
   BattIcon (void);
   ~BattIcon (void);
 
-  HICON Refresh (void);
+  HICON refresh (void);
 
-  HICON          GetDefaultIcon  (void) { return m_hIconDefault; }
-  const StringA& GetStatusString (void) { return m_strStatus; }
+  HICON          getDefaultIcon  (void) { return m_hIconDefault; }
+  const StringA& getStatusString (void) { return m_strStatus; }
 
 
 private :
@@ -46,4 +55,4 @@ private :
 //#include "BattIcon.inl.h"
 
 
-#endif // #ifndef __BattIcon_Header__
+#endif // #ifndef __BattIcon_h__

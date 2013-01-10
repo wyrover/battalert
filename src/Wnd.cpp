@@ -1,67 +1,56 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-10 11:03:27
+//
+// $Id$
+//
+//***************************************************************************
 
-#include "_Main.h"
+#include "stable.h"
 
 
 //---------------------------------------------------------------------------
-// Wnd
-//---------------------------------------------------------------------------
-Wnd::Wnd (Application* pApplication)
+Wnd::Wnd (void)
+: m_hWnd(0)
 {
-  XASSERT(pApplication);
-
-  // parent application
-  m_pApp = pApplication;
-
-  // properties
-  m_hWnd = NULL;
 }
 
-//---------------------------------------------------------------------------
-// ~Wnd
 //---------------------------------------------------------------------------
 Wnd::~Wnd (void)
 {
-  this->Destroy();
+  this->destroy();
 }
 
 //---------------------------------------------------------------------------
-// Destroy
-//---------------------------------------------------------------------------
-void Wnd::Destroy (void)
+void Wnd::destroy (void)
 {
   if (m_hWnd)
   {
-    ::DestroyWindow(m_hWnd);
-    m_hWnd = NULL;
+    DestroyWindow(m_hWnd);
+    m_hWnd = 0;
   }
 }
 
 //---------------------------------------------------------------------------
-// IsCreated
-//---------------------------------------------------------------------------
-bool Wnd::IsCreated (void) const
+bool Wnd::isCreated (void) const
 {
-  return (m_hWnd && ::IsWindow(m_hWnd));
+  return m_hWnd && IsWindow(m_hWnd);
 }
 
 //---------------------------------------------------------------------------
-// SetTitle
-//---------------------------------------------------------------------------
-void Wnd::SetTitle (const StringA& strNewTitle)
+void Wnd::setTitle (const StringA& strNewTitle)
 {
-  XASSERT(m_hWnd);
-  ::SetWindowText(m_hWnd, strNewTitle.c_str());
+  DOASSERT(m_hWnd);
+  SetWindowText(m_hWnd, strNewTitle.c_str());
 }
 
 //---------------------------------------------------------------------------
-// GetTitle
-//---------------------------------------------------------------------------
-StringA Wnd::GetTitle (void) const
+StringA Wnd::getTitle (void) const
 {
-  char szTitle[512] = "\0";
+  char szTitle[1024] = "\0";
 
-  XASSERT(m_hWnd);
-
-  ::GetWindowText(m_hWnd, (char*)&szTitle, sizeof(szTitle));
+  DOASSERT(m_hWnd);
+  GetWindowText(m_hWnd, (char*)&szTitle, sizeof(szTitle));
   return StringA((char*)&szTitle);
 }

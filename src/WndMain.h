@@ -1,6 +1,14 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-10 11:06:20
+//
+// $Id$
+//
+//***************************************************************************
 
-#ifndef __WndMain_Header__
-#define __WndMain_Header__
+#ifndef __WndMain_h__
+#define __WndMain_h__
 
 
 //---------------------------------------------------------------------------
@@ -12,27 +20,27 @@ public :
   struct PowerStatus
   {
     bool                bValid;
-    uint32              uiTimestamp;
+    unsigned            uiTimestamp;
     SYSTEM_POWER_STATUS sps;
   };
 
 
 public :
-  WndMain (Application* pApplication);
-  virtual ~WndMain (void);
+  WndMain (void);
+  ~WndMain (void);
 
-  void Open (void);
+  void open (void);
 
 
 private :
   // window's events
-  void OnCreate          (void);
-  void OnDestroy         (void);
-  void OnPopupMenu       (const POINT& ptPos);
-  void OnPollPowerStatus (void);
+  void onCreate          (void);
+  void onDestroy         (void);
+  void onPopupMenu       (const POINT& ptPos);
+  void onPollPowerStatus (void);
 
   // window's events switcher
-  static LRESULT CALLBACK WndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
+  static LRESULT CALLBACK wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
 
 
 private :
@@ -48,4 +56,4 @@ private :
 #include "WndMain.inl.h"
 
 
-#endif // #ifndef __WndMain_Header__
+#endif // #ifndef __WndMain_h__

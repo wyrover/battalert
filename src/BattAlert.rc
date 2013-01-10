@@ -1,108 +1,37 @@
-// Microsoft Visual C++ generated resource script.
+//***************************************************************************
 //
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-09 16:09:06
+//
+// $Id$
+//
+//***************************************************************************
+
 #include "resource.h"
 
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-#include "afxres.h"
 
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
+//---------------------------------------------------------------------------
+// Icons
+//---------------------------------------------------------------------------
+IDI_APP     ICON  "res/IcoApp.ico"
+IDI_NOBATT  ICON  "res/IcoNoBatt.ico"
 
-/////////////////////////////////////////////////////////////////////////////
-// Neutre resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
-#ifdef _WIN32
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_APP                 ICON                    "IcoApp.ico"
-IDI_NOBATT              ICON                    "IcoNoBatt.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDM_POPUP_MAIN MENU 
+//---------------------------------------------------------------------------
+// Menus
+//---------------------------------------------------------------------------
+IDM_POPUP_MAIN MENU
 BEGIN
-    POPUP "MainPopup"
-    BEGIN
-        MENUITEM SEPARATOR
-        MENUITEM "&Quit",                       IDM_QUIT
-    END
+  POPUP "MainPopup"
+  BEGIN
+    MENUITEM SEPARATOR
+    MENUITEM "&Quit",   IDM_QUIT
+  END
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// FONTS
-//
-
-IDF_SMALL               FONTS                   "04B_24__.ttf"
-IDF_NORMAL              FONTS                   "04B_03__.ttf"
-#endif    // Neutre resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Français (France) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
-#ifdef _WIN32
-LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
-#pragma code_page(1252)
-#endif //_WIN32
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-#endif    // Français (France) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
-
+//---------------------------------------------------------------------------
+// Fonts
+//---------------------------------------------------------------------------
+IDF_SMALL   FONTS  "res/Font04B24.ttf"
+IDF_NORMAL  FONTS  "res/Font04B03.ttf"

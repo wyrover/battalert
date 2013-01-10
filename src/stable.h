@@ -1,18 +1,22 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-09 16:35:32
+//
+// $Id$
+//
+//***************************************************************************
 
-#ifndef __AppMain_Header__
-#define __AppMain_Header__
+#ifndef __stable_h__
+#define __stable_h__
 
 
 //---------------------------------------------------------------------------
 // Branding :)
 //---------------------------------------------------------------------------
-#define APP_BRAND_NAME       "BattAlert" // keep it as a single word (no whitespaces) !
-#define APP_BRAND_AUTHOR     "?"
-#define APP_BRAND_WEB        "?"
-#define APP_BRAND_TIMESTAMP  "Compiled on " __DATE__ // " at " __TIME__
-
-// product version
-#define APP_BRAND_VERSION_STRING  "1.01.0001" // keep it Version3() compliant !
+#define APP_NAME         "BattAlert" // keep it as a single word (no whitespaces) !
+//efine APP_VERSION_STR  "0.1"
+//efine APP_TIMESTAMP    "Compiled on " __DATE__ " at " __TIME__
 
 
 //---------------------------------------------------------------------------
@@ -20,69 +24,101 @@
 //---------------------------------------------------------------------------
 // those values must *never* be modified accross releases
 // they are used to perform some IPC, detection, etc...
-#define APP_UNIQUE_INSTANCE_NAME   "__" APP_BRAND_NAME "_InstanceMutex__"
-#define APP_UNIQUE_WNDCLASS_MAIN   (APP_BRAND_NAME "_WndMainClass1")
+#define APP_UNIQUE_INSTANCE_NAME   APP_NAME "_InstanceMutex"
+#define APP_UNIQUE_WNDCLASS_MAIN   (APP_NAME "_WndMainClass1")
 #define APP_UNIQUE_WM_SYSTRAYICON  (WM_USER + 1)
 
 
 //---------------------------------------------------------------------------
 // Macros
 //---------------------------------------------------------------------------
-#define SHOWMESSAGE   Application::ShowMessage(__FILE__, __LINE__, NCORE_FUNCTION,
-#define SHOWSYSERROR  Application::ShowSystemErrorMessage(__FILE__, __LINE__, NCORE_FUNCTION,
+// use this to make your code uncompilable until you remove it
+#define TODO  const char TODO[-1] = "This is a TODO!"
+
+// static assert macro (i.e.: compile-time assert)
+#define MY_STATIC_ASSERT(test)  typedef char MY_CAT(_static_assert_,__LINE__)[(test) * 2 - 1]
+
+// util macros
+#define MY_VERBATIM(x)   x
+#define MY_STRINGIZE(x)  MY_STRINGIZE__SUB(x)
+#define MY_CAT(a,b)      MY_CAT__SUB(a,b)
+
+// util macros subs (do not use directly)
+#define MY_STRINGIZE__SUB(x)  #x
+#define MY_CAT__SUB(a,b)      a##b
+
+// assertions / log / throw exceptions
+#ifdef _DEBUG
+# ifdef _MSC_VER
+#   define DOASSERT  _ASSERTE  // defined in <crtdbg.h>
+# else
+#   define DOASSERT  assert
+# endif
+# define LOGDBG(msg, ...)     ::Logger::print(::Logger::LLDEBUG, __FILE__, __LINE__, msg, ## __VA_ARGS__)
+# define LOGINFO(msg, ...)    ::Logger::print(::Logger::LLINFO, __FILE__, __LINE__, msg, ## __VA_ARGS__)
+# define LOGWARN(msg, ...)    ::Logger::print(::Logger::LLWARN, __FILE__, __LINE__, msg, ## __VA_ARGS__)
+# define LOGERR(msg, ...)     ::Logger::print(::Logger::LLERROR, __FILE__, __LINE__, msg, ## __VA_ARGS__)
+# define LOGFATAL(msg, ...)   ::Logger::print(::Logger::LLFATAL, __FILE__, __LINE__, msg, ## __VA_ARGS__)
+# define THROWEX(msg, ...)    do { ::Logger::showNext(true); ::Logger::throwException(::Logger::LLFATAL, __FILE__, __LINE__, msg, ## __VA_ARGS__); } while(0)
+#else
+# define DOASSERT
+# define LOGDBG(msg, ...)
+# define LOGINFO(msg, ...)    ::Logger::print(::Logger::LLINFO, 0, __LINE__, msg, ## __VA_ARGS__)
+# define LOGWARN(msg, ...)    ::Logger::print(::Logger::LLWARN, 0, __LINE__, msg, ## __VA_ARGS__)
+# define LOGERR(msg, ...)     ::Logger::print(::Logger::LLERROR, 0, __LINE__, msg, ## __VA_ARGS__)
+# define LOGFATAL(msg, ...)   ::Logger::print(::Logger::LLFATAL, 0, __LINE__, msg, ## __VA_ARGS__)
+# define THROWEX(msg, ...)    do { ::Logger::showNext(true); ::Logger::throwException(::Logger::LLFATAL, __FILE__, __LINE__, msg, ## __VA_ARGS__); } while(0)
+#endif
+
+// message box
+#define MSGBOX_INFO(msg, ...)  ::Logger::showMessage(::Logger::LLINFO, 0, 0, msg, ## __VA_ARGS__)
+#define MSGBOX_WARN(msg, ...)  ::Logger::showMessage(::Logger::LLWARN, 0, 0, msg, ## __VA_ARGS__)
+#define MSGBOX_ERR(msg, ...)   ::Logger::showMessage(::Logger::LLERROR, 0, 0, msg, ## __VA_ARGS__)
 
 
 //---------------------------------------------------------------------------
-// External Includes
+// External Headers
 //---------------------------------------------------------------------------
-// required to use AddFontMemResourceEx
-#define _WIN32_WINNT 0x500
+#define STRICT
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define _WIN32_WINNT  0x500  // required in order to use AddFontMemResourceEx
 
-// nCore header
-#include <nCore/_nCore.h>
+#ifdef _DEBUG
+# ifdef _MSC_VER
+#   define _CRTDBG_MAP_ALLOC
+#   include <cstdlib>
+#   include <crtdbg.h>
+# else
+#   include <cassert>
+# endif
+#endif
 
-// miscellaneous standard headers
-#include <nCore/MemoryManagerMacrosUndef.h>
-//#include <queue>
-#include <nCore/MemoryManagerMacros.h>
+#include <cstdlib>
+#include <cstdio>
+#include <ctime>
+#include <stdint.h>
+#include <inttypes.h>
+#include <ctype.h>
 
-// miscellaneous windows headers
-#include <nCore/MemoryManagerMacrosUndef.h>
+#include <vector>
+
+#include <windows.h>
 #include <shellapi.h>
-//#include <shlobj.h>
-//#include <wininet.h>
-//#include <commctrl.h>
-#include <nCore/MemoryManagerMacros.h>
 
 
 //---------------------------------------------------------------------------
-// Raw Types
+// Local Headers
 //---------------------------------------------------------------------------
-// application
-class AppConfig;
-class Application;
-class OwnLogger;
-class Wnd;
-class WndMain;
-
-
-//---------------------------------------------------------------------------
-// Local Includes
-//---------------------------------------------------------------------------
-using namespace nCore;
-
 #include "resource.h"
 
-// common code
-#include "OwnLogger.h"
-#include "Wnd.h"
+#include "Logger.h"
+#include "StringA.h"
 
-// application
-#include "AppConfig.h"
-#include "Application.h"
 #include "BattIcon.h"
+#include "Wnd.h"
 #include "WndMain.h"
+#include "App.h"
 
 
-
-#endif // #ifndef __AppMain_Header__
+#endif // #ifndef __stable_h__

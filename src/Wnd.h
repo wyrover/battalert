@@ -1,6 +1,14 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-10 11:03:23
+//
+// $Id$
+//
+//***************************************************************************
 
-#ifndef __Wnd_Header__
-#define __Wnd_Header__
+#ifndef __Wnd_h__
+#define __Wnd_h__
 
 
 //---------------------------------------------------------------------------
@@ -9,25 +17,20 @@
 class Wnd
 {
 public :
-  explicit Wnd (Application* pApplication);
+  Wnd (void);
   virtual ~Wnd (void);
 
   // open / destroy
-          bool IsCreated (void) const;
-  virtual void Destroy   (void);
+          bool isCreated (void) const;
+  virtual void destroy   (void);
 
   // properties
-          Application* GetApplication (void);
-          HWND         GetHandle      (void) const;
-  virtual void         SetTitle       (const StringA& strNewTitle);
-  virtual StringA      GetTitle       (void) const;
+          HWND    getHandle (void) const;
+  virtual void    setTitle  (const StringA& strNewTitle);
+  virtual StringA getTitle  (void) const;
 
 
 protected :
-  // parent application
-  Application* m_pApp;
-
-  // properties
   HWND m_hWnd;
 };
 
@@ -35,4 +38,4 @@ protected :
 #include "Wnd.inl.h"
 
 
-#endif // #ifndef __Wnd_Header__
+#endif // #ifndef __Wnd_h__

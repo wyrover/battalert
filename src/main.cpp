@@ -1,130 +1,66 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-09 16:35:35
+//
+// $Id$
+//
+//***************************************************************************
 
-#include "_Main.h"
+#include "stable.h"
 
 
-//---------------------------------------------------------------------------
-// _ParseWinCommandLine
-//---------------------------------------------------------------------------
-static void _ParseWinCommandLine (int* out_argc, char*** out_argv)
-{
-  char* pszCommandLine = ::GetCommandLine();
-  static std::vector<char*> pos;
-  bool new_arg = true;
-
-	for ( ; *pszCommandLine ; pszCommandLine++)
-	{
-    if (*pszCommandLine == '"')
-    {
-      new_arg = true;
-      pszCommandLine++;
-      char* start_arg = pszCommandLine;
-      for ( ; *pszCommandLine && *pszCommandLine!='"' ; ++pszCommandLine)
-      {
-        if (!isspace(*pszCommandLine))
-          new_arg = false;
-      }
-      if (new_arg == false)
-        pos.push_back(start_arg);
-      if (*pszCommandLine == '"')
-        *pszCommandLine = 0;
-      else if (*pszCommandLine == 0)
-        break;
-      pszCommandLine++;
-      if (*pszCommandLine == 0)
-        break;
-      new_arg = true;
-    }
-
-    if (new_arg && !isspace(*pszCommandLine))
-    {
-      new_arg = false;
-      pos.push_back(pszCommandLine);
-    }
-    else if (!new_arg && isspace(*pszCommandLine))
-    {
-      new_arg = true;
-      *pszCommandLine = 0;
-    }
-	}
-
-	int num_words = (int)pos.size();
-	char** words = new char*[num_words + 1];
-	int i;
-
-  for (i=0 ; i<num_words ; i++)
-    words[i] = pos[i];
-  words[i] = NULL;
-
-  *out_argc = num_words;
-  *out_argv = words;
-}
-
-//---------------------------------------------------------------------------
-// m a i n
 //---------------------------------------------------------------------------
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-  int    nReturn = 0;
-  int    nArgc = 0;
-  char** pArgv = NULL;
-  Application* pApp;
+  // setup debugging
+#if defined(_MSC_VER) && defined(_DEBUG)
+  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+  //_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+  //_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+  //_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+  //_CrtSetBreakAlloc(197);
+#endif
+
+  // handle duplicated instances
+  //   the system will close the mutex handle automatically when the process
+  //   will terminate, so there's no need to CloseHandle() after that.
+  CreateMutex(NULL, FALSE, APP_UNIQUE_INSTANCE_NAME
+#ifdef _DEBUG
+    "_DEBUG"
+#endif
+    );
+  if (GetLastError() == ERROR_ALREADY_EXISTS)
+  {
+    MessageBoxA(NULL, "An instance of " APP_NAME " is already running!", APP_NAME, MB_ICONEXCLAMATION);
+    return 2;
+  }
 
   try
   {
-    // handle duplicated instances
-    // * uncomment this if needed
-    // * the system will close the mutex handle automatically when the
-    //   process will terminate, so there's no need to CloseHandle() after
-    //   that.
-    ::CreateMutex(NULL, FALSE, APP_UNIQUE_INSTANCE_NAME
-#ifdef X_DEBUG
-      "DEBUG"
-#endif
-      );
-    if (::GetLastError() == ERROR_ALREADY_EXISTS)
-      return 2;
-
-    // parse command line
-    _ParseWinCommandLine(&nArgc, &pArgv);
-
-    // init application
-    pApp = new Application(hInstance, pArgv[0]);
-    nReturn = pApp->Init(nArgc, (const char**)pArgv);
-
-    // run application
-    if (nReturn == 0)
-      nReturn = pApp->Run();
-
-    // uninit application
-    delete pApp;  // implicit call to pApp->Uninit()
-
-    // destroy parsed command line result
-    if (pArgv) delete[] pArgv;
+    App* pApp = new App(hInstance);
+    int iRes = pApp->init(__argc, __argv);
+    if (!iRes)
+      iRes = pApp->run();
+    pApp->uninit();
+    delete pApp;
+    return iRes;
   }
-  catch (::nCore::Exception& e)
+  catch (const char*)
   {
-    e.Log();
-    ::MessageBox(NULL, e.GetDescription(), APP_BRAND_NAME, MB_ICONEXCLAMATION);
-    nReturn = 99;
+    // probably already logged by Logger::throwException
+    return 1;
   }
-  catch (const ::std::exception& e)
+  catch (std::exception& e)
   {
-    CORELOG LLFATAL, "EXCEPTION : %s", e.what());
-    ::MessageBox(NULL, e.what(), APP_BRAND_NAME, MB_ICONEXCLAMATION);
-    nReturn = 99;
-  }
-  catch (const char* pszMessage)
-  {
-    CORELOG LLFATAL, "EXCEPTION : %s", pszMessage);
-    ::MessageBox(NULL, pszMessage, APP_BRAND_NAME, MB_ICONEXCLAMATION);
-    nReturn = 99;
+    Logger::showNext(true);
+    LOGFATAL("EXCEPTION (std): %s", e.what());
+    return 1;
   }
   catch (...)
   {
-    ::MessageBox(NULL, "Unknown exception !", APP_BRAND_NAME, MB_ICONEXCLAMATION);
-    XASSERT(0);
-    nReturn = 99;
+    LOGFATAL("EXCEPTION (unknown)!");
+    DOASSERT(0);
+    return 1;
   }
-
-  return nReturn;
 }

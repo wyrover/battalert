@@ -1,5 +1,13 @@
+//***************************************************************************
+//
+// Author     : Jean-Charles Lefebvre
+// Created On : 2013-01-10 15:26:16
+//
+// $Id$
+//
+//***************************************************************************
 
-#include "_Main.h"
+#include "stable.h"
 
 
 //---------------------------------------------------------------------------
@@ -9,8 +17,6 @@
 
 
 //---------------------------------------------------------------------------
-// BattIcon
-//---------------------------------------------------------------------------
 BattIcon::BattIcon (void)
 {
   // system power status
@@ -18,8 +24,8 @@ BattIcon::BattIcon (void)
   ZeroMemory(&m_SPS, sizeof(m_SPS));
 
   // load icons
-  m_hIconDefault = ::LoadIcon(g_App().GetInstanceHandle(), MAKEINTRESOURCE(IDI_APP));
-  m_hIconNoBatt  = ::LoadIcon(g_App().GetInstanceHandle(), MAKEINTRESOURCE(IDI_NOBATT));
+  m_hIconDefault = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_APP));
+  m_hIconNoBatt  = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_NOBATT));
 
   // system tray icon
   {
@@ -27,11 +33,11 @@ BattIcon::BattIcon (void)
 
     m_hDcIcon = CreateCompatibleDC(NULL);
     if (!m_hDcIcon)
-      XTHROW EXCODE_SYSTEM_GENERIC, "CreateCompatibleDC() failed ! Error %u : %s", System::LastError(), System::LastErrorString());
+      THROWEX("CreateCompatibleDC() failed! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
 
     m_pBmiIcon = (BITMAPINFO*)malloc(nBmiSize);
     if (!m_pBmiIcon)
-      XTHROW EXCODE_MEMORY, "Failed to allocate BMI (%i bytes) !", nBmiSize);
+      THROWEX("Failed to allocate BMI (%i bytes)!", nBmiSize);
 
     ZeroMemory(m_pBmiIcon, nBmiSize);
     m_pBmiIcon->bmiHeader.biSize          = sizeof(m_pBmiIcon->bmiHeader);
@@ -48,7 +54,7 @@ BattIcon::BattIcon (void)
 
     m_hBmpIcon = CreateDIBSection(m_hDcIcon, m_pBmiIcon, DIB_RGB_COLORS, (PVOID*)&m_pBmpBitsIcon, NULL, 0);
     if (!m_hBmpIcon)
-      XTHROW EXCODE_SYSTEM_GENERIC, "CreateDIBSection() failed ! Error %u : %s", System::LastError(), System::LastErrorString());
+      THROWEX("CreateDIBSection() failed! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
 
     m_hIcon = NULL;
   }
@@ -62,7 +68,7 @@ BattIcon::BattIcon (void)
 
     m_hFontNormalRsrc = AddFontMemResourceEx(hAddr, dwRsrcSize, 0, &dwInstalled);
     if (!m_hFontNormalRsrc)
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to load normal font resource into memory ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+      THROWEX("Failed to load normal font resource into memory! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
 
     m_hFontNormal = CreateFont(
       -8, //-MulDiv(8, GetDeviceCaps(m_hDcIcon, LOGPIXELSY), 72),
@@ -77,7 +83,7 @@ BattIcon::BattIcon (void)
       DEFAULT_PITCH,
       "04b03");
     if (!m_hFontNormal)
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to load normal font ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+      THROWEX("Failed to load normal font! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
   }
 
   // load small font
@@ -89,7 +95,7 @@ BattIcon::BattIcon (void)
 
     m_hFontSmallRsrc = AddFontMemResourceEx(hAddr, dwRsrcSize, 0, &dwInstalled);
     if (!m_hFontSmallRsrc)
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to load small font resource into memory ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+      THROWEX("Failed to load small font resource into memory! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
 
     m_hFontSmall = CreateFont(
       -8, //-MulDiv(8, GetDeviceCaps(m_hDcIcon, LOGPIXELSY), 72),
@@ -104,12 +110,10 @@ BattIcon::BattIcon (void)
       DEFAULT_PITCH,
       "04b24");
     if (!m_hFontSmall)
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to load small font ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+      THROWEX("Failed to load small font! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
   }
 }
 
-//---------------------------------------------------------------------------
-// ~BattIcon
 //---------------------------------------------------------------------------
 BattIcon::~BattIcon (void)
 {
@@ -128,15 +132,13 @@ BattIcon::~BattIcon (void)
 }
 
 //---------------------------------------------------------------------------
-// Refresh
-//---------------------------------------------------------------------------
-HICON BattIcon::Refresh (void)
+HICON BattIcon::refresh (void)
 {
   int nHours   = 0;
   int nMinutes = 0;
   int nSeconds = 0;
 
-  m_strStatus.Clear();
+  m_strStatus.clear();
 
   // get power status
   m_bHavePowerStatus = true;
@@ -160,18 +162,18 @@ HICON BattIcon::Refresh (void)
   }
   if (m_SPS.BatteryLifePercent > 100) // unknown battery status
   {
-    m_strStatus = "Unknown batteru status";
+    m_strStatus = "Unknown battery status";
     return m_hIconDefault;
   }
 
   // prepare status strings
   if (m_SPS.BatteryFlag & 8) // charging
   {
-    m_strStatus.Format("Charging (%u%%)", m_SPS.BatteryLifePercent);
+    m_strStatus.format("Charging (%u%%)", m_SPS.BatteryLifePercent);
   }
   else
   {
-    m_strStatus.Format("%u%%", m_SPS.BatteryLifePercent);
+    m_strStatus.format("%u%%", m_SPS.BatteryLifePercent);
     if (m_SPS.BatteryLifeTime != (DWORD)-1)
     {
       nSeconds = (int)m_SPS.BatteryLifeTime;
@@ -187,7 +189,7 @@ HICON BattIcon::Refresh (void)
         nSeconds = nSeconds % 60;
       }
 
-      m_strStatus.FormatAppend(" (%ih%02i)", nHours, nMinutes);
+      m_strStatus.formatAppend(" (%ih%02i)", nHours, nMinutes);
     }
     m_strStatus += " remaining";
   }
@@ -210,7 +212,7 @@ HICON BattIcon::Refresh (void)
       SetTextColor(m_hDcIcon, RGB(255, 255, 0));
     else
       SetTextColor(m_hDcIcon, RGB(255, 0, 0));
-    DrawText(m_hDcIcon, str.c_str(), str.Length(), &rc, DT_CENTER | DT_VCENTER | DT_NOPREFIX);
+    DrawText(m_hDcIcon, str.c_str(), str.length(), &rc, DT_CENTER | DT_VCENTER | DT_NOPREFIX);
 
     if (m_SPS.BatteryFlag & 8) // charging
     {
@@ -224,7 +226,7 @@ HICON BattIcon::Refresh (void)
     }
     else if (m_SPS.BatteryLifeTime != (DWORD)-1)
     {
-      str.Format("%i:%02i", nHours, nMinutes);
+      str.format("%i:%02i", nHours, nMinutes);
 
       if (m_SPS.BatteryLifeTime > 15 * 60)
         SetTextColor(m_hDcIcon, RGB(255, 255, 255));
@@ -235,14 +237,14 @@ HICON BattIcon::Refresh (void)
     }
     else
     {
-      str.Clear();
+      str.clear();
     }
 
-    if (str.Length() > 0)
+    if (str.length() > 0)
     {
       rc.top += ICON_WIDTH / 2;
       SelectObject(m_hDcIcon, m_hFontSmall);
-      DrawText(m_hDcIcon, str.c_str(), str.Length(), &rc, DT_CENTER | DT_VCENTER | DT_NOPREFIX);
+      DrawText(m_hDcIcon, str.c_str(), str.length(), &rc, DT_CENTER | DT_VCENTER | DT_NOPREFIX);
     }
 
     SelectObject(m_hDcIcon, hPrevFont);
@@ -264,9 +266,9 @@ HICON BattIcon::Refresh (void)
 
     m_hIcon = CreateIconIndirect(&ii);
     if (!m_hIcon)
-      XTHROW EXCODE_SYSTEM_GENERIC, "Failed to convert BMP to ICON ! Error (%lu) : %s", System::LastError(), System::LastErrorString());
+      THROWEX("Failed to convert BMP to ICON! Error %lu: %s", App::sysLastError(), App::sysLastErrorString());
   }
 
-  XASSERT(m_hIcon);
+  DOASSERT(m_hIcon);
   return m_hIcon;
 }
