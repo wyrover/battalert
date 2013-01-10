@@ -6,17 +6,18 @@
 :: $Id$
 ::
 
-set MINGWMAKE=mingw32-make
-"%MINGWMAKE%" --version > nul 2>&1
+mingw32-make --version > nul 2>&1
 if "%ERRORLEVEL%"=="0" goto __GO
 
-set MINGWMAKE=c:\mingw\bin\mingw32-make
-"%MINGWMAKE%" --version > nul 2>&1
-if "%ERRORLEVEL%"=="0" goto __GO
+c:\mingw\bin\mingw32-make --version > nul 2>&1
+if "%ERRORLEVEL%"=="0" (
+  set PATH=c:\mingw\bin;%PATH%
+  goto __GO
+)
 
 echo ** ERROR: Failed to find mingw32-make!
 pause
 goto :EOF
 
 :__GO
-"%MINGWMAKE%" -f Makefile %*
+mingw32-make -f Makefile %*

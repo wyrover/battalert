@@ -41,12 +41,13 @@ RESOURCES = BattAlert.rc
 
 
 #----------------------------------------------------------------------------
-CC    = mingw32-gcc
-COPY  = copy /y
-MKDIR = mkdir
-RMDIR = rmdir /s /q
-STRIP = strip --strip-all
-UPX   = upx --best
+CC      = mingw32-gcc
+WINDRES = windres
+COPY    = copy /y
+MKDIR   = mkdir
+RMDIR   = rmdir /s /q
+STRIP   = strip --strip-all
+UPX     = upx --best
 
 EXE_SUFFIX=.exe
 
@@ -140,10 +141,10 @@ $(TARGET_PRE_RELEASE): $(RESOBJ_RELEASE) $(OBJ_RELEASE)
 
 
 $(DIR_OBJ_DEBUG)/%.coff: $(DIR_SRC)/%.rc
-	windres -o $@ -i $<
+	$(WINDRES) -o $@ -i $<
 
 $(DIR_OBJ_RELEASE)/%.coff: $(DIR_SRC)/%.rc
-	windres -o $@ -i $<
+	$(WINDRES) -o $@ -i $<
 
 
 $(DIR_OBJ_DEBUG)/%.o: $(DIR_SRC)/%.cpp $(FINAL_HEADERS)
