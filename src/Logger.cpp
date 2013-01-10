@@ -83,6 +83,8 @@ void Logger::print (Level eLevel, const char* pszFile, int iLine, const char* ps
       StringA strFileName(pszFile);
       strFileName.pathStripDirectory();
       fprintf(pFile, "  in %s line %i.\n", strFileName.c_str(), iLine);
+#else
+      fputs("\n", pFile);
 #endif
 
       fclose(pFile);
