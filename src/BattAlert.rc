@@ -11,7 +11,7 @@
 
 
 //---------------------------------------------------------------------------
-// Icons
+// Icon
 //---------------------------------------------------------------------------
 IDI_APP     ICON  "res/IcoApp.ico"
 IDI_NOBATT  ICON  "res/IcoNoBatt.ico"
@@ -19,20 +19,28 @@ IDI_RED     ICON  "res/IcoRed.ico"
 
 
 //---------------------------------------------------------------------------
-// Menus
+// Menu
 //---------------------------------------------------------------------------
 IDM_POPUP_MAIN MENU
 BEGIN
   POPUP "MainPopup"
   BEGIN
     MENUITEM SEPARATOR
-    MENUITEM "&Quit",   IDM_QUIT
+    MENUITEM "Test &Alarm",  IDM_ALARM
+    MENUITEM SEPARATOR
+    MENUITEM "&Quit",        IDM_QUIT
   END
 END
 
 
 //---------------------------------------------------------------------------
-// Fonts
+// Font
 //---------------------------------------------------------------------------
 IDF_SMALL   FONTS  "res/Font04B24.ttf"
 IDF_NORMAL  FONTS  "res/Font04B03.ttf"
+
+
+//---------------------------------------------------------------------------
+// Wave
+//---------------------------------------------------------------------------
+IDW_ALARM  WAVE  "res/WavAlarm.wav"

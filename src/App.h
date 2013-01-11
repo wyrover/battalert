@@ -21,7 +21,8 @@ public :
   ~App (void);
 
   // properties
-  HINSTANCE instance (void);
+  HINSTANCE      instance    (void);
+  const StringA& getExeNoExt (void) const;
 
   // main methods
   int  init   (int argc, char** argv);
@@ -38,6 +39,7 @@ public :
 
 private :
   HINSTANCE m_hInstance;
+  StringA   m_strExeNoExt;
   WndMain*  m_pWndMain;
 
 

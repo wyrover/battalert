@@ -15,6 +15,12 @@ inline HINSTANCE App::instance (void)
 }
 
 //---------------------------------------------------------------------------
+inline const StringA& App::getExeNoExt (void) const
+{
+  return m_strExeNoExt;
+}
+
+//---------------------------------------------------------------------------
 inline App* App::singleton (void)
 {
   return ms_pSingleton;

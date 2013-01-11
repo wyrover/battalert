@@ -23,6 +23,12 @@ App::App (HINSTANCE hInstance)
 {
   DOASSERT(!ms_pSingleton);
   ms_pSingleton = this;
+
+  // get current exe file path and remove its extension part
+  if (!::GetModuleFileNameA(::GetModuleHandleA(0), m_strExeNoExt.acquireBuffer(MAX_PATH, false), MAX_PATH))
+    THROWEX("GetModuleFileName() failed! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+  m_strExeNoExt.releaseBuffer();
+  m_strExeNoExt.pathStripExtension();
 }
 
 //---------------------------------------------------------------------------
@@ -44,17 +50,7 @@ void App::uninit (void)
 int App::init (int argc, char** argv)
 {
   // setup logger's output file
-  {
-    StringA strPath;
-
-    if (!::GetModuleFileNameA(::GetModuleHandleA(0), strPath.acquireBuffer(MAX_PATH, false), MAX_PATH))
-      THROWEX("GetModuleFileName() failed! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
-    strPath.releaseBuffer();
-    strPath.pathStripExtension();
-    strPath += ".log";
-
-    Logger::setOutFile(strPath);
-  }
+  Logger::setOutFile(m_strExeNoExt + ".log");
 
   // main window
   m_pWndMain = new WndMain();

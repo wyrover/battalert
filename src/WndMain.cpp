@@ -15,9 +15,13 @@
 //---------------------------------------------------------------------------
 #define SYSTRAYICON_ID  1
 
-#define TIMER_POWERPOLL_ID               1
+#define TIMER_POWERPOLL                  1
 #define TIMER_POWERPOLL_DELAYMS          (15 * 1000)
 #define TIMER_POWERPOLL_DELAYMS_ONERROR  (3 * 1000) // must be faster than TIMER_POWERPOLL_DELAYMS
+
+#define TIMER_STOPALARM                   2
+#define TIMER_STOPALARM_DELAYMS           (20 * 1000)
+#define TIMER_STOPALARM_DELAYMS_PLAYTEST  (8 * 1000)
 
 
 //---------------------------------------------------------------------------
@@ -37,6 +41,9 @@ WndMain::WndMain (void)
   // init members
   m_hMenuMainPopup = 0;
   m_uiLastPollTick = 0;
+  m_hWinmmDll      = 0;
+  m_pfnPlaySound   = 0;
+  m_bSoundPlaying  = false;
 
   // create window's class
   {
@@ -65,6 +72,7 @@ WndMain::WndMain (void)
 //---------------------------------------------------------------------------
 WndMain::~WndMain (void)
 {
+  this->stopAlarm();
   this->destroy();
 
   UnregisterClass(APP_UNIQUE_WNDCLASS_MAIN, g_pApp->instance());
@@ -74,8 +82,6 @@ WndMain::~WndMain (void)
 
 
 
-//---------------------------------------------------------------------------
-// open
 //---------------------------------------------------------------------------
 void WndMain::open (void)
 {
@@ -109,6 +115,127 @@ void WndMain::open (void)
 
 
 //---------------------------------------------------------------------------
+bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
+{
+  static bool bErrorLoggedDll = false;
+  static bool bErrorLoggedSym = false;
+  StringA strFile;
+  DWORD   dwAttr;
+  BOOL    bRes;
+
+  m_bSoundPlaying = false;
+
+  // lazy init
+  if (!m_hWinmmDll)
+  {
+    m_hWinmmDll = LoadLibrary("winmm.dll");
+    if (!m_hWinmmDll)
+    {
+      if (!bErrorLoggedDll)
+      {
+        LOGERR("Failed to load winmm.dll dynamically! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+        bErrorLoggedDll = true;
+      }
+      return false;
+    }
+
+    m_pfnPlaySound = (FNPLAYSOUNDA)GetProcAddress(m_hWinmmDll, "PlaySoundA");
+    if (!m_pfnPlaySound)
+    {
+      if (!bErrorLoggedSym)
+      {
+        LOGERR("Failed to load symbol from winmm.dll! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+        bErrorLoggedSym = true;
+      }
+      this->stopAlarm();
+      return false;
+    }
+  }
+
+  // select sound file to play
+  strFile  = g_pApp->getExeNoExt();
+  strFile += ".wav";
+  dwAttr   = GetFileAttributes(strFile.c_str());
+  if (dwAttr == INVALID_FILE_ATTRIBUTES)
+    strFile.clear(); // file hasn't been found, fallback to default behavior
+
+  // play sound
+  while (1)
+  {
+    LPCSTR  pszSound;
+    DWORD   dwFlags = 2 | 8 | 1; // SND_NODEFAULT | SND_LOOP | SND_ASYNC
+    HMODULE hMod;
+
+    if (strFile.isEmpty())
+    {
+      pszSound = MAKEINTRESOURCE(IDW_ALARM);
+      dwFlags |= 0x40004; // SND_RESOURCE
+      hMod     = g_pApp->instance();
+    }
+    else
+    {
+      pszSound = strFile.c_str();
+      dwFlags |= 0x20000; // SND_FILENAME
+      hMod     = 0;
+    }
+
+    bRes = m_pfnPlaySound(pszSound, hMod, dwFlags);
+    if (bRes)
+    {
+      m_bSoundPlaying = true;
+      break;
+    }
+    else if (!strFile.isEmpty())
+    {
+      LOGERR("Failed to play wave file \"%s\"!", strFile.c_str());
+      strFile.clear();
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  if (m_bSoundPlaying)
+  {
+    // setup timer to stop playing the sound later
+    if (!SetTimer(m_hWnd, TIMER_STOPALARM, uiLoopDurationMS, NULL))
+      THROWEX("Failed to setup stopsound timer to %u milliseconds! Error %lu: %s", uiLoopDurationMS, App::sysLastError(), App::sysLastErrorString());
+
+    // disable "test sound" menu item
+    ModifyMenu(m_hMenuMainPopup, IDM_ALARM, MF_BYCOMMAND | MF_STRING, IDM_ALARM, "Stop &Alarm");
+  }
+  else
+  {
+    this->stopAlarm();
+  }
+
+  return m_bSoundPlaying;
+}
+
+//---------------------------------------------------------------------------
+void WndMain::stopAlarm (void)
+{
+  if (m_hWinmmDll)
+  {
+    if (m_pfnPlaySound)
+    {
+      m_pfnPlaySound(0, 0, 0);
+      m_pfnPlaySound = 0;
+    }
+
+    FreeLibrary(m_hWinmmDll);
+    m_hWinmmDll = 0;
+  }
+
+  m_bSoundPlaying = false;
+  KillTimer(m_hWnd, TIMER_STOPALARM);
+  ModifyMenu(m_hMenuMainPopup, IDM_ALARM, MF_BYCOMMAND | MF_STRING, IDM_ALARM, "Test &Alarm");
+}
+
+
+
+//---------------------------------------------------------------------------
 void WndMain::onCreate (void)
 {
   NOTIFYICONDATA nid;
@@ -136,8 +263,9 @@ void WndMain::onDestroy (void)
 {
   NOTIFYICONDATA nid;
 
-  // destroy "power poll" timer
-  KillTimer(m_hWnd, TIMER_POWERPOLL_ID);
+  // destroy timers
+  KillTimer(m_hWnd, TIMER_POWERPOLL);
+  KillTimer(m_hWnd, TIMER_STOPALARM);
 
   // remove systray icon
   nid.cbSize = sizeof(NOTIFYICONDATA);
@@ -222,7 +350,7 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     uiNextPollMS = TIMER_MAX_RESOLUTION_MS;
   if (uiNextPollMS > TIMER_POWERPOLL_DELAYMS)
     uiNextPollMS = TIMER_POWERPOLL_DELAYMS;
-  if (!SetTimer(m_hWnd, TIMER_POWERPOLL_ID, uiNextPollMS, NULL))
+  if (!SetTimer(m_hWnd, TIMER_POWERPOLL, uiNextPollMS, NULL))
     THROWEX("Failed to setup polling timer to %u milliseconds! Error %lu: %s", uiNextPollMS, App::sysLastError(), App::sysLastErrorString());
 }
 
@@ -251,6 +379,13 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
           ms_pThis->destroy();
           break;
 
+        case IDM_ALARM :
+          if (ms_pThis->isAlarmPlaying())
+            ms_pThis->stopAlarm();
+          else
+            ms_pThis->playAlarm(TIMER_STOPALARM_DELAYMS_PLAYTEST);
+          break;
+
         default :
           return DefWindowProc(hWnd, uiMsg, wParam, lParam);
       }
@@ -277,8 +412,12 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
     case WM_TIMER :
       switch (wParam)
       {
-        case TIMER_POWERPOLL_ID :
+        case TIMER_POWERPOLL :
           ms_pThis->onPollPowerStatus(false);
+          break;
+
+        case TIMER_STOPALARM :
+          ms_pThis->stopAlarm();
           break;
 
         default :

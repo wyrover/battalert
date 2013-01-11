@@ -19,12 +19,18 @@ DIR_SRC         = $(DIR_ROOT)/src
 # CAUTION: files in this list must be relative to DIR_SRC
 HEADERS = \
   stable.h \
-  App.h App.inl.h \
+  resource.h \
+  App.h \
+  App.inl.h \
   BattIcon.h \
-  Logger.h Logger.inl.h \
-  StringA.h StringA.inl.h \
-  Wnd.h Wnd.inl.h \
-  WndMain.h WndMain.inl.h
+  Logger.h \
+  Logger.inl.h \
+  StringA.h \
+  StringA.inl.h \
+  Wnd.h \
+  Wnd.inl.h \
+  WndMain.h \
+  WndMain.inl.h
 
 # CAUTION: files in this list must be relative to DIR_SRC
 SOURCES = \
@@ -51,7 +57,8 @@ UPX     = upx --best
 
 EXE_SUFFIX=.exe
 
-CFLAGS_COMMON  = -pipe -Wall -Werror -Wno-deprecated -Wno-unused-value -Wno-char-subscripts
+CFLAGS_COMMON  = -pipe
+CFLAGS_COMMON += -Wall -Werror -Wno-deprecated -Wno-unused-value -Wno-char-subscripts
 CFLAGS_DEBUG   = -g3 -D_DEBUG
 CFLAGS_RELEASE = -O2 -s -DNDEBUG
 

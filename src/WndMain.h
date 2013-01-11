@@ -31,6 +31,11 @@ public :
 
   void open (void);
 
+  // sound
+  bool playAlarm      (UINT uiLoopDurationMS=0);
+  bool isAlarmPlaying (void) const;
+  void stopAlarm      (void);
+
 
 private :
   // window's events
@@ -47,6 +52,11 @@ private :
   HMENU    m_hMenuMainPopup;
   BattIcon m_BattIcon;
   UINT     m_uiLastPollTick;
+
+  // sound
+  HMODULE      m_hWinmmDll;
+  FNPLAYSOUNDA m_pfnPlaySound;
+  bool         m_bSoundPlaying;
 
 
 private :

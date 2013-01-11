@@ -9,3 +9,7 @@
 
 
 //---------------------------------------------------------------------------
+inline bool WndMain::isAlarmPlaying (void) const
+{
+  return m_bSoundPlaying;
+}
