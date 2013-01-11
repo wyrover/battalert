@@ -38,12 +38,12 @@ public :
 
   HICON refresh (void);
 
-  HICON          getDefaultIcon  (void)       { return m_hIconDefault; }
-  const StringA& getStatusString (void) const { return m_strStatus; }
-  bool           isBlinking      (void) const { return m_eBlink != BLINK_OFF; }
-  bool           isAlarmOn       (void) const { return m_eAlarm == ALARM_ON; }
-  void           ackAlarm        (void)       { if (m_eAlarm == ALARM_ON) m_eAlarm = ALARM_ACK; }
-  bool           isAcOnline      (void) const { return m_bHavePowerStatus && ((m_SPS.BatteryFlag & 8) || (m_SPS.ACLineStatus == 1)); }
+  HICON          getDefaultIcon  (void);
+  const StringA& getStatusString (void) const;
+  bool           isBlinking      (void) const;
+  bool           isAlarmOn       (void) const;
+  void           ackAlarm        (void);
+  bool           isAcOnline      (void) const;
 
 
 private :
@@ -75,7 +75,7 @@ private :
 };
 
 
-//#include "BattIcon.inl.h"
+#include "BattIcon.inl.h"
 
 
 #endif // #ifndef __BattIcon_h__
