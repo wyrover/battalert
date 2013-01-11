@@ -43,7 +43,7 @@ public :
   bool           isBlinking      (void) const { return m_eBlink != BLINK_OFF; }
   bool           isAlarmOn       (void) const { return m_eAlarm == ALARM_ON; }
   void           ackAlarm        (void)       { if (m_eAlarm == ALARM_ON) m_eAlarm = ALARM_ACK; }
-  bool           isAcOnline      (void)       { return m_bHavePowerStatus && ((m_SPS.BatteryFlag & 8) || (m_SPS.ACLineStatus == 1)); }
+  bool           isAcOnline      (void) const { return m_bHavePowerStatus && ((m_SPS.BatteryFlag & 8) || (m_SPS.ACLineStatus == 1)); }
 
 
 private :
