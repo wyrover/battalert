@@ -7,7 +7,6 @@
 //
 //***************************************************************************
 
-
 #ifndef __BattIcon_h__
 #define __BattIcon_h__
 
@@ -20,9 +19,16 @@ class BattIcon
 public :
   enum BlinkMode
   {
-    BLINK_DISABLED, // no blinking
-    BLINK_ON,       // blinking icon
-    BLINK_OFF,      // normal icon
+    BLINK_OFF,    // no blinking
+    BLINK_STEP1,  // blinking icon
+    BLINK_STEP2,  // normal icon
+  };
+
+  enum AlarmMode
+  {
+    ALARM_OFF,  // no alarm
+    ALARM_ON,   // alarm mode is enabled
+    ALARM_ACK,  // alarm mode is enabled and has been acknowledged
   };
 
 
@@ -32,9 +38,12 @@ public :
 
   HICON refresh (void);
 
-  HICON          getDefaultIcon  (void) { return m_hIconDefault; }
-  const StringA& getStatusString (void) { return m_strStatus; }
-  bool           isBlinking      (void) { return m_eBlink != BLINK_DISABLED; }
+  HICON          getDefaultIcon  (void)       { return m_hIconDefault; }
+  const StringA& getStatusString (void) const { return m_strStatus; }
+  bool           isBlinking      (void) const { return m_eBlink != BLINK_OFF; }
+  bool           isAlarmOn       (void) const { return m_eAlarm == ALARM_ON; }
+  void           ackAlarm        (void)       { if (m_eAlarm == ALARM_ON) m_eAlarm = ALARM_ACK; }
+  bool           isAcOnline      (void)       { return m_bHavePowerStatus && ((m_SPS.BatteryFlag & 8) || (m_SPS.ACLineStatus == 1)); }
 
 
 private :
@@ -43,6 +52,8 @@ private :
   SYSTEM_POWER_STATUS m_SPS;
   StringA             m_strStatus;
   BlinkMode           m_eBlink;
+  AlarmMode           m_eAlarm;
+  BYTE                m_cAlarmPrevBattLife;
 
   // loaded icons
   HICON m_hIconDefault;

@@ -22,7 +22,9 @@ BattIcon::BattIcon (void)
   // system power status
   m_bHavePowerStatus = false;
   ZeroMemory(&m_SPS, sizeof(m_SPS));
-  m_eBlink = BLINK_DISABLED;
+  m_eBlink = BLINK_OFF;
+  m_eAlarm = ALARM_OFF;
+  m_cAlarmPrevBattLife = 255;
 
   // load icons
   m_hIconDefault = LoadIcon(g_pApp->instance(), MAKEINTRESOURCE(IDI_APP));
@@ -148,7 +150,9 @@ HICON BattIcon::refresh (void)
   {
     m_bHavePowerStatus = false;
     m_strStatus = "Failed to query power status !";
-    m_eBlink = BLINK_DISABLED;
+    m_eBlink = BLINK_OFF;
+    m_eAlarm = ALARM_OFF;
+    m_cAlarmPrevBattLife = 255;
     return m_hIconDefault;
   }
 
@@ -156,26 +160,35 @@ HICON BattIcon::refresh (void)
   if (m_SPS.BatteryFlag & 128) // no system battery
   {
     m_strStatus = "No battery";
-    m_eBlink = BLINK_DISABLED;
+    m_eBlink = BLINK_OFF;
+    m_eAlarm = ALARM_OFF;
+    m_cAlarmPrevBattLife = 255;
     return m_hIconNoBatt;
   }
   if (m_SPS.ACLineStatus != 0 && m_SPS.ACLineStatus != 1) // unknown AC status
   {
     m_strStatus = "Unknown AC status";
-    m_eBlink = BLINK_DISABLED;
+    m_eBlink = BLINK_OFF;
+    m_eAlarm = ALARM_OFF;
+    m_cAlarmPrevBattLife = 255;
     return m_hIconDefault;
   }
   if (m_SPS.BatteryLifePercent > 100) // unknown battery status
   {
     m_strStatus = "Unknown battery status";
-    m_eBlink = BLINK_DISABLED;
+    m_eBlink = BLINK_OFF;
+    m_eAlarm = ALARM_OFF;
+    m_cAlarmPrevBattLife = 255;
     return m_hIconDefault;
   }
 
   // prepare status strings
   if (m_SPS.BatteryFlag & 8) // charging
   {
-    m_eBlink = BLINK_DISABLED;
+    m_eBlink = BLINK_OFF;
+    if (m_SPS.BatteryLifePercent > ALERT_SOUND_PERCENT)
+      m_eAlarm = ALARM_OFF;
+    m_cAlarmPrevBattLife = m_SPS.BatteryLifePercent;
     m_strStatus.format("Charging (%u%%)", m_SPS.BatteryLifePercent);
   }
   else
@@ -184,12 +197,28 @@ HICON BattIcon::refresh (void)
     {
       m_eBlink =
         (m_SPS.BatteryLifePercent <= ALERT_BLINK_PERCENT) ?
-        ((m_eBlink == BLINK_ON) ? BLINK_OFF : BLINK_ON) :
-        BLINK_DISABLED;
+        ((m_eBlink == BLINK_STEP1) ? BLINK_STEP2 : BLINK_STEP1) :
+        BLINK_OFF;
+
+      if (m_eAlarm == ALARM_OFF &&
+        m_SPS.BatteryLifePercent <= ALERT_SOUND_PERCENT &&
+        m_cAlarmPrevBattLife > ALERT_SOUND_PERCENT)
+      {
+        m_eAlarm = ALARM_ON;
+        m_cAlarmPrevBattLife = m_SPS.BatteryLifePercent;
+      }
+      else if (m_SPS.BatteryLifePercent > ALERT_SOUND_PERCENT)
+      {
+        m_eAlarm = ALARM_OFF;
+      }
+
+      m_cAlarmPrevBattLife = m_SPS.BatteryLifePercent;
     }
     else
     {
-      m_eBlink = BLINK_DISABLED;
+      m_eBlink = BLINK_OFF;
+      m_eAlarm = ALARM_OFF;
+      m_cAlarmPrevBattLife = 255;
     }
 
     m_strStatus.format("%u%%", m_SPS.BatteryLifePercent);
@@ -214,7 +243,7 @@ HICON BattIcon::refresh (void)
   }
 
   // blink ?
-  if (m_eBlink == BLINK_ON)
+  if (m_eBlink == BLINK_STEP1)
     return m_hIconBlink;
 
   // refresh icon content

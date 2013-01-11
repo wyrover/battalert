@@ -199,6 +199,8 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
   if (m_bSoundPlaying)
   {
     // setup timer to stop playing the sound later
+    if (!uiLoopDurationMS)
+      uiLoopDurationMS = TIMER_STOPALARM_DELAYMS;
     if (!SetTimer(m_hWnd, TIMER_STOPALARM, uiLoopDurationMS, NULL))
       THROWEX("Failed to setup stopsound timer to %u milliseconds! Error %lu: %s", uiLoopDurationMS, App::sysLastError(), App::sysLastErrorString());
 
@@ -331,6 +333,20 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
       bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
       if (!bRes && App::sysLastError() != ERROR_TIMEOUT)
         LOGERR("Failed to update system tray icon! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+    }
+
+    // play an alarm sound
+    if (m_BattIcon.isAlarmOn())
+    {
+      m_BattIcon.ackAlarm();
+      if (!m_bSoundPlaying)
+        this->playAlarm();
+      else
+        LOGWARN("Alarm sound is already played!");
+    }
+    else if (m_BattIcon.isAcOnline())
+    {
+      this->stopAlarm();
     }
 
     // choose next poll's delay
