@@ -83,7 +83,7 @@
 # define LOGWARN(msg, ...)    ::Logger::print(::Logger::LLWARN, 0, __LINE__, msg, ## __VA_ARGS__)
 # define LOGERR(msg, ...)     ::Logger::print(::Logger::LLERROR, 0, __LINE__, msg, ## __VA_ARGS__)
 # define LOGFATAL(msg, ...)   ::Logger::print(::Logger::LLFATAL, 0, __LINE__, msg, ## __VA_ARGS__)
-# define THROWEX(msg, ...)    do { ::Logger::showNext(true); ::Logger::throwException(::Logger::LLFATAL, __FILE__, __LINE__, msg, ## __VA_ARGS__); } while(0)
+# define THROWEX(msg, ...)    do { ::Logger::showNext(true); ::Logger::throwException(::Logger::LLFATAL, 0, __LINE__, msg, ## __VA_ARGS__); } while(0)
 #endif
 
 // message box
@@ -137,6 +137,7 @@ typedef BOOL (WINAPI* FNPLAYSOUNDA)(LPCSTR,HMODULE,DWORD);
 #include "Logger.h"
 #include "StringA.h"
 
+#include "Config.h"
 #include "BattIcon.h"
 #include "Wnd.h"
 #include "WndMain.h"

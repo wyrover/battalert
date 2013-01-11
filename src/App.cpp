@@ -52,6 +52,10 @@ int App::init (int argc, char** argv)
   // setup logger's output file
   Logger::setOutFile(m_strExeNoExt + ".log");
 
+  // load config
+  Config::setIniFile(m_strExeNoExt + ".ini");
+  Config::load();
+
   // main window
   m_pWndMain = new WndMain();
   m_pWndMain->open();

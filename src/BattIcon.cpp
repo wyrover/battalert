@@ -186,7 +186,7 @@ HICON BattIcon::refresh (void)
   if (m_SPS.BatteryFlag & 8) // charging
   {
     m_eBlink = BLINK_OFF;
-    if (m_SPS.BatteryLifePercent > ALERT_SOUND_PERCENT)
+    if ((int)m_SPS.BatteryLifePercent > Config::nAlertThreshold)
       m_eAlarm = ALARM_OFF;
     m_cAlarmPrevBattLife = m_SPS.BatteryLifePercent;
     m_strStatus.format("Charging (%u%%)", m_SPS.BatteryLifePercent);
@@ -196,18 +196,18 @@ HICON BattIcon::refresh (void)
     if (m_SPS.ACLineStatus != 1) // ac power NOT online
     {
       m_eBlink =
-        (m_SPS.BatteryLifePercent <= ALERT_BLINK_PERCENT) ?
+        ((int)m_SPS.BatteryLifePercent <= Config::nIconBlinkingThreshold) ?
         ((m_eBlink == BLINK_STEP1) ? BLINK_STEP2 : BLINK_STEP1) :
         BLINK_OFF;
 
       if (m_eAlarm == ALARM_OFF &&
-        m_SPS.BatteryLifePercent <= ALERT_SOUND_PERCENT &&
-        m_cAlarmPrevBattLife > ALERT_SOUND_PERCENT)
+        (int)m_SPS.BatteryLifePercent <= Config::nAlertThreshold &&
+        (int)m_cAlarmPrevBattLife > Config::nAlertThreshold)
       {
         m_eAlarm = ALARM_ON;
         m_cAlarmPrevBattLife = m_SPS.BatteryLifePercent;
       }
-      else if (m_SPS.BatteryLifePercent > ALERT_SOUND_PERCENT)
+      else if ((int)m_SPS.BatteryLifePercent > Config::nAlertThreshold)
       {
         m_eAlarm = ALARM_OFF;
       }
@@ -243,7 +243,7 @@ HICON BattIcon::refresh (void)
   }
 
   // blink ?
-  if (m_eBlink == BLINK_STEP1)
+  if (m_eBlink == BLINK_STEP1 && Config::bIconBlinking)
     return m_hIconBlink;
 
   // refresh icon content

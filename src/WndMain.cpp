@@ -119,9 +119,6 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
 {
   static bool bErrorLoggedDll = false;
   static bool bErrorLoggedSym = false;
-  StringA strFile;
-  DWORD   dwAttr;
-  BOOL    bRes;
 
   m_bSoundPlaying = false;
 
@@ -152,13 +149,6 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     }
   }
 
-  // select sound file to play
-  strFile  = g_pApp->getExeNoExt();
-  strFile += ".wav";
-  dwAttr   = GetFileAttributes(strFile.c_str());
-  if (dwAttr == INVALID_FILE_ATTRIBUTES)
-    strFile.clear(); // file hasn't been found, fallback to default behavior
-
   // play sound
   while (1)
   {
@@ -166,7 +156,7 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     DWORD   dwFlags = 2 | 8 | 1; // SND_NODEFAULT | SND_LOOP | SND_ASYNC
     HMODULE hMod;
 
-    if (strFile.isEmpty())
+    if (Config::strAlertSoundFile.isEmpty())
     {
       pszSound = MAKEINTRESOURCE(IDW_ALARM);
       dwFlags |= 0x40004; // SND_RESOURCE
@@ -174,21 +164,21 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     }
     else
     {
-      pszSound = strFile.c_str();
+      pszSound = Config::strAlertSoundFile.c_str();
       dwFlags |= 0x20000; // SND_FILENAME
       hMod     = 0;
     }
 
-    bRes = m_pfnPlaySound(pszSound, hMod, dwFlags);
-    if (bRes)
+    if (m_pfnPlaySound(pszSound, hMod, dwFlags))
     {
       m_bSoundPlaying = true;
       break;
     }
-    else if (!strFile.isEmpty())
+    else if (!Config::strAlertSoundFile.isEmpty())
     {
-      LOGERR("Failed to play wave file \"%s\"!", strFile.c_str());
-      strFile.clear();
+      LOGERR("Failed to play wave file \"%s\"!", Config::strAlertSoundFile.c_str());
+      Config::strAlertSoundFile.clear();
+      Config::save();
     }
     else
     {
@@ -340,9 +330,14 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     {
       m_BattIcon.ackAlarm();
       if (!m_bSoundPlaying)
-        this->playAlarm();
+      {
+        if (Config::bAlertSound)
+          this->playAlarm();
+      }
       else
+      {
         LOGWARN("Alarm sound is already played!");
+      }
     }
     else if (m_BattIcon.isAcOnline())
     {

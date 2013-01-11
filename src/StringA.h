@@ -162,8 +162,8 @@ public :
   virtual void reset   (void);                                               // complete reset : raz string and free memory (use the clear() method if you just want make the string empty, which is faster)
 
   // length
-  virtual void clear          (void);       // empty string but does not free memory (this is a fast alternative to reset())
-  virtual bool isEmpty        (void) const; // check for an empty string
+  virtual void      clear     (void);       // empty string but does not free memory (this is a fast alternative to reset())
+  virtual bool      isEmpty   (void) const; // check for an empty string
   virtual STRA_UINT length    (void) const; // length of the string, this is an strlen() equivalent
   virtual STRA_UINT maxLength (void) const; // max string length the buffer is currently capable to hold (so real buffer size is maxLength()+1)
 

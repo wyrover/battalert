@@ -23,6 +23,9 @@ HEADERS = \
   App.h \
   App.inl.h \
   BattIcon.h \
+  BattIcon.inl.h \
+  Config.h \
+  Config.inl.h \
   Logger.h \
   Logger.inl.h \
   StringA.h \
@@ -37,6 +40,7 @@ SOURCES = \
   main.cpp \
   App.cpp \
   BattIcon.cpp \
+  Config.cpp \
   Logger.cpp \
   StringA.cpp \
   Wnd.cpp \
