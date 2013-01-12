@@ -33,7 +33,7 @@
 // Constants (App)
 //---------------------------------------------------------------------------
 // max resolution (SetTimer())
-#define TIMER_MAX_RESOLUTION_MS  55
+#define TIMER_MAX_RESOLUTION_MS  250 // system allows 55
 
 // alert mode will be turned on if remaining battery power
 // is <= ALERT_BLINK_PERCENT percents in non-charging mode.
