@@ -254,6 +254,8 @@ void WndMain::onDestroy (void)
 {
   NOTIFYICONDATA nid;
 
+  this->stopAlarm();
+
   // destroy timers
   KillTimer(m_hWnd, TIMER_POWERPOLL);
   KillTimer(m_hWnd, TIMER_STOPALARM);
@@ -415,6 +417,15 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
     case APP_UNIQUE_WM_SYSTRAYICON :
       switch (LOWORD(lParam)) // HIWORD(lParam) contains the icon ID.
       {
+        case WM_LBUTTONUP :
+          if (ms_pThis->isAlarmPlaying())
+            ms_pThis->stopAlarm();
+          break;
+
+        case WM_LBUTTONDBLCLK :
+          ms_pThis->onConfigDialog();
+          break;
+
         case WM_RBUTTONUP :
           GetCursorPos(&pt);
           ms_pThis->onPopupMenu(pt);

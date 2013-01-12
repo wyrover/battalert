@@ -65,6 +65,9 @@ void WndConfig::onCreate (void)
   SetDlgItemText(m_hWnd, IDC_TXT_ALERT, Config::strAlertSoundFile);
   this->onSlideAlertThreshold();
   this->onCheckAlert();
+
+  SetForegroundWindow(m_hWnd);
+  SetFocus(GetDlgItem(m_hWnd, IDC_CHK_BLINK));
 }
 
 //---------------------------------------------------------------------------
