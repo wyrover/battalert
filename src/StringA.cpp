@@ -2148,12 +2148,9 @@ void StringA::pathStripName (void)
   {
     if (StringA::charIsPathSeparator(m_pszData[Ix]))
     {
-      ++Ix;
+      m_uiLength = Ix;
+      m_pszData[Ix] = 0;
 
-      m_uiLength -= Ix;
-      memmove(m_pszData, &m_pszData[Ix], m_uiLength + 1);
-
-      STRA_ASSERT(m_pszData[m_uiLength] == 0);
       STRA_ASSERT((STRA_UINT)strlen(m_pszData) == m_uiLength);
 
       return;
