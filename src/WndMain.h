@@ -42,6 +42,7 @@ private :
   void onCreate          (void);
   void onDestroy         (void);
   void onPopupMenu       (const POINT& ptPos);
+  void onConfigDialog    (void);
   void onPollPowerStatus (bool bForceRefresh);
 
   // window's events switcher

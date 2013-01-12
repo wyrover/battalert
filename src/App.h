@@ -23,6 +23,7 @@ public :
   // properties
   HINSTANCE      instance    (void);
   const StringA& getExeNoExt (void) const;
+  WndMain*       wndMain     (void);
 
   // main methods
   int  init   (int argc, char** argv);

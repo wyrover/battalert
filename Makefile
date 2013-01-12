@@ -32,6 +32,8 @@ HEADERS = \
   StringA.inl.h \
   Wnd.h \
   Wnd.inl.h \
+  WndConfig.h \
+  WndConfig.inl.h \
   WndMain.h \
   WndMain.inl.h
 
@@ -44,6 +46,7 @@ SOURCES = \
   Logger.cpp \
   StringA.cpp \
   Wnd.cpp \
+  WndConfig.cpp \
   WndMain.cpp
 
 # CAUTION: files in this list must be relative to DIR_SRC
@@ -70,7 +73,7 @@ CXXFLAGS_COMMON  = -fno-rtti
 CXXFLAGS_DEBUG   =
 CXXFLAGS_RELEASE =
 
-LIBS_COMMON  = -lstdc++
+LIBS_COMMON  = -lstdc++ -lcomctl32
 LIBS_DEBUG   =
 LIBS_RELEASE =
 

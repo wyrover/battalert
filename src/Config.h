@@ -22,8 +22,8 @@ public :
   static void load (void);
   static void save (void);
 
-  static bool adjustThreshold (int* pnThreshold);
-  static bool adjustFile      (StringA& strFile);
+  static bool validateThreshold (int* pnThreshold);
+  static bool validateFile      (StringA& strFile);
 
 
 private :

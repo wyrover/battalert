@@ -73,10 +73,9 @@ WndMain::WndMain (void)
 WndMain::~WndMain (void)
 {
   this->stopAlarm();
+
   this->destroy();
-
   UnregisterClass(APP_UNIQUE_WNDCLASS_MAIN, g_pApp->instance());
-
   ms_pThis = 0;
 }
 
@@ -279,6 +278,13 @@ void WndMain::onPopupMenu (const POINT& pt)
 }
 
 //---------------------------------------------------------------------------
+void WndMain::onConfigDialog (void)
+{
+  WndConfig wndConfig;
+  wndConfig.open();
+}
+
+//---------------------------------------------------------------------------
 void WndMain::onPollPowerStatus (bool bForceRefresh)
 {
   UINT uiNow = GetTickCount();
@@ -388,6 +394,10 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       {
         case IDM_QUIT :
           ms_pThis->destroy();
+          break;
+
+        case IDM_CONFIGDIALOG :
+          ms_pThis->onConfigDialog();
           break;
 
         case IDM_ALARM :

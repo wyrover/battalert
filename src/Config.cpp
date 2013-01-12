@@ -76,7 +76,7 @@ void Config::save (void)
 
 
 //---------------------------------------------------------------------------
-bool Config::adjustThreshold (int* pnThreshold)
+bool Config::validateThreshold (int* pnThreshold)
 {
   if (*pnThreshold < 1)
   {
@@ -93,7 +93,7 @@ bool Config::adjustThreshold (int* pnThreshold)
 }
 
 //---------------------------------------------------------------------------
-bool Config::adjustFile (StringA& strFile)
+bool Config::validateFile (StringA& strFile)
 {
   if (!strFile.isEmpty())
   {
@@ -171,7 +171,7 @@ int Config::iniReadThreshold (const char* pszName, int iDefault)
   else
   {
     int nRes = str.extractInt32();
-    Config::adjustThreshold(&nRes);
+    Config::validateThreshold(&nRes);
     return nRes;
   }
 }

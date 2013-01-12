@@ -21,6 +21,12 @@ inline const StringA& App::getExeNoExt (void) const
 }
 
 //---------------------------------------------------------------------------
+inline WndMain* App::wndMain (void)
+{
+  return m_pWndMain;
+}
+
+//---------------------------------------------------------------------------
 inline App* App::singleton (void)
 {
   return ms_pSingleton;

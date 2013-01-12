@@ -121,6 +121,7 @@
 
 #include <windows.h>
 #include <shellapi.h>
+#include <commctrl.h>
 
 
 //---------------------------------------------------------------------------
@@ -140,6 +141,7 @@ typedef BOOL (WINAPI* FNPLAYSOUNDA)(LPCSTR,HMODULE,DWORD);
 #include "Config.h"
 #include "BattIcon.h"
 #include "Wnd.h"
+#include "WndConfig.h"
 #include "WndMain.h"
 #include "App.h"
 

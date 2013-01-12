@@ -49,6 +49,8 @@ void App::uninit (void)
 //---------------------------------------------------------------------------
 int App::init (int argc, char** argv)
 {
+  InitCommonControls();
+
   // setup logger's output file
   Logger::setOutFile(m_strExeNoExt + ".log");
 
