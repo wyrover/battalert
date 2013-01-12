@@ -21,3 +21,4 @@ goto :EOF
 
 :__GO
 mingw32-make -f Makefile %*
+exit /b %ERRORLEVEL%
