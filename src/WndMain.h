@@ -31,10 +31,11 @@ public :
 
   void open (void);
 
-  // sound
+  // alert
   bool playAlarm      (UINT uiLoopDurationMS=0);
   bool isAlarmPlaying (void) const;
   void stopAlarm      (void);
+  void alertMessage   (void);
 
 
 private :

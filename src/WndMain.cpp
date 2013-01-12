@@ -20,7 +20,7 @@
 #define TIMER_POWERPOLL_DELAYMS_ONERROR  (3 * 1000) // must be faster than TIMER_POWERPOLL_DELAYMS
 
 #define TIMER_STOPALARM                   2
-#define TIMER_STOPALARM_DELAYMS           (20 * 1000)
+#define TIMER_STOPALARM_DELAYMS           (30 * 1000)
 #define TIMER_STOPALARM_DELAYMS_PLAYTEST  (8 * 1000)
 
 
@@ -224,6 +224,31 @@ void WndMain::stopAlarm (void)
   ModifyMenu(m_hMenuMainPopup, IDM_ALARM, MF_BYCOMMAND | MF_STRING, IDM_ALARM, "Test &Alarm");
 }
 
+//---------------------------------------------------------------------------
+void WndMain::alertMessage (void)
+{
+  MSGBOXPARAMS mbp;
+  StringA strMsg;
+
+  strMsg.format(
+    "%s would kindly like to remind you that your system will very probably "
+    "run out of battery soon and that if you do nothing about it, the world "
+    "will end in the worst way ever!\n"
+    "(Just plug-in your computer on AC power, it will be just fine...)",
+    g_pApp->title().c_str());
+
+  ZeroMemory(&mbp, sizeof(mbp));
+  mbp.cbSize      = sizeof(mbp);
+  mbp.hwndOwner   = m_hWnd;
+  mbp.hInstance   = g_pApp->instance();
+  mbp.lpszText    = strMsg.c_str();
+  mbp.lpszCaption = g_pApp->title().c_str();
+  mbp.dwStyle     = MB_USERICON | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_TOPMOST;
+  mbp.lpszIcon    = MAKEINTRESOURCE(IDI_APP);
+  if (MessageBoxIndirect(&mbp) != 0 && ms_pThis->isAlarmPlaying())
+    ms_pThis->stopAlarm();
+}
+
 
 
 //---------------------------------------------------------------------------
@@ -295,6 +320,7 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     m_BattIcon.isBlinking() ?
     ALERT_BLINK_FREQUENCY_MS :
     TIMER_POWERPOLL_DELAYMS_ONERROR;
+  bool bShowAlertMessage = false;
 
   //LOGINFO("Poll (now:%u diff:%u)", uiNow, uiNow - m_uiLastPollTick);
 
@@ -346,6 +372,8 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
       {
         LOGWARN("Alarm sound is already played!");
       }
+      if (Config::bAlertMessageBox)
+        bShowAlertMessage = true;
     }
     else if (m_BattIcon.isAcOnline())
     {
@@ -371,6 +399,9 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     uiNextPollMS = TIMER_POWERPOLL_DELAYMS;
   if (!SetTimer(m_hWnd, TIMER_POWERPOLL, uiNextPollMS, NULL))
     THROWEX("Failed to setup polling timer to %u milliseconds! Error %lu: %s", uiNextPollMS, App::sysLastError(), App::sysLastErrorString());
+
+  if (bShowAlertMessage)
+    this->alertMessage();
 }
 
 
