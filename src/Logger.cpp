@@ -170,6 +170,6 @@ void Logger::showMessage (Level eLevel, const char* pszFile, int iLine, const ch
     strText += strFormat;
   }
 
-  MessageBoxA(NULL, strText.c_str(), App::title().c_str(), uiType);
+  MessageBoxA(NULL, strText.c_str(), App::name().c_str(), uiType);
 #endif
 }

@@ -60,3 +60,4 @@
 #define IDC_BTN_ALERTBROWSE    509
 #define IDC_TXT_ALERT          510
 #define IDC_LBL_ALERTSOUNDTIP  511
+#define IDC_CHK_STARTUP        512

@@ -1343,10 +1343,10 @@ inline bool StringA::charIsNewLine (char c)
 //---------------------------------------------------------------------------
 inline bool StringA::charIsPathSeparator (char c)
 {
-  // finally, we always recognize '\\' as a valid path separator, even on
-  // non-windows platforms so we keep the same behavior accross platforms,
-  // which is mainly what we want here...
-  // by the way, if you want to be sure your path is cleaned up, check the
+  // we always recognize '\\' as a valid path separator, even on non-windows
+  // platforms so we keep the same behavior accross platforms, which is
+  // mainly what we want here...
+  // if you want to be sure your path is cleaned up, check the
   // StringA::pathBackSlashesToSlashes() and
   // StringA::pathSlashesToBackSlashes() methods.  - jcl
   return (c == '/') || (c == '\\');

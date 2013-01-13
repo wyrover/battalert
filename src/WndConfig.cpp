@@ -50,7 +50,7 @@ void WndConfig::open (void)
 //---------------------------------------------------------------------------
 void WndConfig::onCreate (void)
 {
-  this->setTitle(g_pApp->title() + " Configuration");
+  this->setTitle(App::name() + " Configuration");
 
   CheckDlgButton(m_hWnd, IDC_CHK_BLINK, (Config::bIconBlinking ? BST_CHECKED : BST_UNCHECKED));
   SendDlgItemMessage(m_hWnd, IDC_SLIDER_BLINK, TBM_SETRANGE, TRUE, MAKELONG(1, 99));
@@ -65,6 +65,8 @@ void WndConfig::onCreate (void)
   SetDlgItemText(m_hWnd, IDC_TXT_ALERT, Config::strAlertSoundFile);
   this->onSlideAlertThreshold();
   this->onCheckAlert();
+
+  CheckDlgButton(m_hWnd, IDC_CHK_STARTUP, (Config::bLaunchAtStartup ? BST_CHECKED : BST_UNCHECKED));
 
   SetForegroundWindow(m_hWnd);
   SetFocus(GetDlgItem(m_hWnd, IDC_CHK_BLINK));
@@ -128,7 +130,7 @@ void WndConfig::onBrowseSoundFile (void)
 
   if (strNewFile.isEmpty())
   {
-    strDir = g_pApp->getExeNoExt();
+    strDir = g_pApp->exePath();
     strDir.pathStripName();
   }
   else
@@ -157,7 +159,7 @@ void WndConfig::onBrowseSoundFile (void)
     Config::validateFile(strNewFile);
     if (strNewFile.isEmpty())
     {
-      MessageBox(m_hWnd, "Selected file not found!", g_pApp->title(), MB_ICONERROR);
+      MessageBox(m_hWnd, "Selected file not found!", App::name(), MB_ICONERROR);
     }
     else
     {
@@ -181,7 +183,9 @@ void WndConfig::onOK (void)
   Config::strAlertSoundFile.releaseBuffer();
   Config::validateFile(Config::strAlertSoundFile);
 
-  Config::save();
+  Config::bLaunchAtStartup = IsDlgButtonChecked(m_hWnd, IDC_CHK_STARTUP) == BST_CHECKED;
+
+  Config::save(true);
   EndDialog(m_hWnd, 1);
 }
 

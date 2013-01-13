@@ -15,9 +15,9 @@ inline HINSTANCE App::instance (void)
 }
 
 //---------------------------------------------------------------------------
-inline const StringA& App::getExeNoExt (void) const
+inline const StringA& App::exePath (void) const
 {
-  return m_strExeNoExt;
+  return m_strExePath;
 }
 
 //---------------------------------------------------------------------------

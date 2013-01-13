@@ -20,10 +20,11 @@ public :
   static void setIniFile (const char* pszIniFile);
 
   static void load (void);
-  static void save (void);
+  static void save (bool bShowErrorMsgBox);
 
-  static bool validateThreshold (int* pnThreshold);
-  static bool validateFile      (StringA& strFile);
+  static bool validateThreshold    (int* pnThreshold);
+  static bool validateFile         (StringA& strFile);
+  static bool applyLaunchAtStartup (bool bShowErrorMsgBox);
 
 
 private :
@@ -33,12 +34,13 @@ private :
   static void    iniWriteFailed   (const char* pszName, UINT uiLastError, const char* pszLastError);
   static bool    iniReadBool      (const char* pszName, bool bDefault);
   static int     iniReadThreshold (const char* pszName, int iDefault);
-  static StringA iniReadFilePath  (const char* pszName);
   static void    iniReadString    (const char* pszName, StringA& strOutput);
 
 
 public :
   static StringA strIniFile;
+
+  static bool bLaunchAtStartup;
 
   static bool bIconBlinking;
   static int  nIconBlinkingThreshold;

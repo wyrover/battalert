@@ -53,25 +53,27 @@ IDW_ALARM  WAVE  "res/WavAlarm.wav"
 //---------------------------------------------------------------------------
 // Dialog
 //---------------------------------------------------------------------------
-IDD_CONFIG  DIALOGEX  0, 0, 298, 173
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_CONFIG DIALOGEX 0, 0, 299, 199
+STYLE DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_POPUP | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION ""
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
+FONT 8, "MS Shell Dlg", 400, 0, 1
 BEGIN
-  GROUPBOX       "Icon Blinking",IDC_STATIC,90,0,204,42
-  CONTROL        "Enabled",IDC_CHK_BLINK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,102,11,60,12
-  RTEXT          "0%",IDC_LBL_BLINK,258,12,24,8
-  CONTROL        "",IDC_SLIDER_BLINK,"msctls_trackbar32",TBS_NOTICKS | WS_TABSTOP,96,24,192,12
-  GROUPBOX       "Alert",IDC_STATIC,90,48,204,102
-  LTEXT          "Threshold",IDC_STATIC,102,60,60,8
-  RTEXT          "0%",IDC_LBL_ALERT,258,60,24,8
-  CONTROL        "",IDC_SLIDER_ALERT,"msctls_trackbar32",TBS_NOTICKS | WS_TABSTOP,96,72,192,12
-  CONTROL        "Display a message box",IDC_CHK_ALERTMSGBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,102,90,96,12
-  CONTROL        "Play a sound",IDC_CHK_ALERTSOUND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,102,102,96,12
-  PUSHBUTTON     "Browse",IDC_BTN_ALERTBROWSE,246,102,36,12
-  EDITTEXT       IDC_TXT_ALERT,102,116,180,12,ES_AUTOHSCROLL
-  CTEXT          "You can leave this field empty to play the default embedded sound file.",IDC_LBL_ALERTSOUNDTIP,102,129,180,18
-  DEFPUSHBUTTON  "Save",IDOK,192,156,50,14
-  PUSHBUTTON     "Cancel",IDCANCEL,246,156,50,14
+    GROUPBOX        "Icon Blinking", IDC_STATIC, 90, 0, 205, 42
+    AUTOCHECKBOX    "Enabled", IDC_CHK_BLINK, 102, 11, 60, 12
+    RTEXT           "0%", IDC_LBL_BLINK, 258, 12, 24, 8, SS_RIGHT
+    CONTROL         "", IDC_SLIDER_BLINK, TRACKBAR_CLASS, WS_TABSTOP | TBS_NOTICKS, 96, 24, 192, 12
+    GROUPBOX        "Alert", IDC_STATIC, 90, 45, 205, 102
+    LTEXT           "Threshold", IDC_STATIC, 102, 57, 60, 8, SS_LEFT
+    RTEXT           "0%", IDC_LBL_ALERT, 258, 57, 24, 8, SS_RIGHT
+    CONTROL         "", IDC_SLIDER_ALERT, TRACKBAR_CLASS, WS_TABSTOP | TBS_NOTICKS, 96, 69, 192, 12
+    AUTOCHECKBOX    "Display a message box", IDC_CHK_ALERTMSGBOX, 102, 87, 96, 12
+    AUTOCHECKBOX    "Play a sound", IDC_CHK_ALERTSOUND, 102, 99, 96, 12
+    PUSHBUTTON      "Browse", IDC_BTN_ALERTBROWSE, 246, 99, 36, 12
+    EDITTEXT        IDC_TXT_ALERT, 102, 113, 180, 12, ES_AUTOHSCROLL
+    CTEXT           "You can leave this field empty to play the default embedded sound file.", IDC_LBL_ALERTSOUNDTIP, 102, 126, 180, 18, SS_CENTER
+    DEFPUSHBUTTON   "Save", IDOK, 191, 180, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 245, 180, 50, 14
+    GROUPBOX        "Miscellaneous", IDC_STATIC, 90, 150, 205, 25
+    AUTOCHECKBOX    "Launch on Windows' startup", IDC_CHK_STARTUP, 105, 160, 180, 10
 END

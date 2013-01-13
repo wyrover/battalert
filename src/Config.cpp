@@ -14,6 +14,7 @@
 // Constants
 //---------------------------------------------------------------------------
 static const char* c_pszIniSection                  = "main";
+static const char* c_pszValue_LaunchAtStartup       = "LaunchAtStartup";
 static const char* c_pszValue_IconBlinkingEnabled   = "IconBlinkingEnabled";
 static const char* c_pszValue_IconBlinkingThreshold = "IconBlinkingThreshold";
 static const char* c_pszValue_AlertThreshold        = "AlertThreshold";
@@ -27,6 +28,7 @@ static const char* c_pszValue_AlertSoundFile        = "AlertSoundFile";
 //---------------------------------------------------------------------------
 StringA Config::strIniFile;
 
+bool    Config::bLaunchAtStartup       = true;
 bool    Config::bIconBlinking          = true;
 int     Config::nIconBlinkingThreshold = ALERT_BLINK_PERCENT;
 int     Config::nAlertThreshold        = ALERT_SOUND_PERCENT;
@@ -45,32 +47,38 @@ void Config::setIniFile (const char* pszIniFile)
 //---------------------------------------------------------------------------
 void Config::load (void)
 {
-  if (GetFileAttributes(Config::strIniFile) == INVALID_FILE_ATTRIBUTES)
-    return; // ini file not found
+  // read values if ini file is found
+  if (GetFileAttributes(Config::strIniFile) != INVALID_FILE_ATTRIBUTES)
+  {
+    Config::bLaunchAtStartup       = Config::iniReadBool(c_pszValue_LaunchAtStartup, Config::bLaunchAtStartup);
+    Config::bIconBlinking          = Config::iniReadBool(c_pszValue_IconBlinkingEnabled, Config::bIconBlinking);
+    Config::nIconBlinkingThreshold = Config::iniReadThreshold(c_pszValue_IconBlinkingThreshold, Config::nIconBlinkingThreshold);
+    Config::nAlertThreshold        = Config::iniReadThreshold(c_pszValue_AlertThreshold, Config::nAlertThreshold);
+    Config::bAlertMessageBox       = Config::iniReadBool(c_pszValue_AlertMsgBoxEnabled, Config::bAlertMessageBox);
+    Config::bAlertSound            = Config::iniReadBool(c_pszValue_AlertSoundEnabled, Config::bAlertSound);
+    Config::iniReadString(c_pszValue_AlertSoundFile, Config::strAlertSoundFile);
+  }
 
-  // read values
-  Config::bIconBlinking          = Config::iniReadBool(c_pszValue_IconBlinkingEnabled, Config::bIconBlinking);
-  Config::nIconBlinkingThreshold = Config::iniReadThreshold(c_pszValue_IconBlinkingThreshold, Config::nIconBlinkingThreshold);
-  Config::nAlertThreshold        = Config::iniReadThreshold(c_pszValue_AlertThreshold, Config::nAlertThreshold);
-  Config::bAlertMessageBox       = Config::iniReadBool(c_pszValue_AlertMsgBoxEnabled, Config::bAlertMessageBox);
-  Config::bAlertSound            = Config::iniReadBool(c_pszValue_AlertSoundEnabled, Config::bAlertSound);
-  Config::strAlertSoundFile      = Config::iniReadFilePath(c_pszValue_AlertSoundFile);
+  Config::applyLaunchAtStartup(false);
 }
 
 //---------------------------------------------------------------------------
-void Config::save (void)
+void Config::save (bool bShowErrorMsgBox)
 {
   // delete ini file to ensure we generate a clean config
   if (GetFileAttributes(Config::strIniFile) != INVALID_FILE_ATTRIBUTES)
     ::remove(Config::strIniFile);
 
   // write values
+  Config::iniWrite(c_pszValue_LaunchAtStartup, Config::bLaunchAtStartup);
   Config::iniWrite(c_pszValue_IconBlinkingEnabled, Config::bIconBlinking);
   Config::iniWrite(c_pszValue_IconBlinkingThreshold, Config::nIconBlinkingThreshold);
   Config::iniWrite(c_pszValue_AlertThreshold, Config::nAlertThreshold);
   Config::iniWrite(c_pszValue_AlertMsgBoxEnabled, Config::bAlertMessageBox);
   Config::iniWrite(c_pszValue_AlertSoundEnabled, Config::bAlertSound);
   Config::iniWrite(c_pszValue_AlertSoundFile, Config::strAlertSoundFile);
+
+  Config::applyLaunchAtStartup(bShowErrorMsgBox);
 }
 
 
@@ -104,6 +112,65 @@ bool Config::validateFile (StringA& strFile)
       return false;
     }
   }
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool Config::applyLaunchAtStartup (bool bShowErrorMsgBox)
+{
+  const StringA c_strKeyPathStartup = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+  const StringA c_strKeyNameStartup = APP_NAME;
+
+  HKEY  hKey;
+  LONG  nRes;
+  DWORD dwDisposition = 0;
+
+  // open registry key
+  nRes = RegCreateKeyEx(HKEY_CURRENT_USER, c_strKeyPathStartup.c_str(), 0,
+    NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisposition);
+  if (nRes != ERROR_SUCCESS)
+  {
+    if (bShowErrorMsgBox)
+      Logger::showNext(true);
+    LOGERR("Error while openning Registry key ! Error %d: %s",
+      c_strKeyPathStartup.c_str(), nRes, App::sysLastErrorString());
+    return false;
+  }
+
+  // write/delete value according to our configuration data
+  if (Config::bLaunchAtStartup)
+  {
+    StringA strStartupValue("\"" + g_pApp->exePath() + "\" --autostart");
+
+    nRes = RegSetValueEx(hKey, c_strKeyNameStartup.c_str(), 0, REG_SZ,
+      (const BYTE*)strStartupValue.c_str(), DWORD(strStartupValue.length()+1));
+    if (nRes != ERROR_SUCCESS)
+    {
+      if (bShowErrorMsgBox)
+        Logger::showNext(true);
+      LOGERR("Error while writing into the Registry (key: HKEY_CURRENT_USER\\%s\\%s)! Error %d: %s",
+        c_strKeyPathStartup.c_str(), c_strKeyNameStartup.c_str(), nRes, App::sysLastErrorString());
+      RegCloseKey(hKey);
+      return false;
+    }
+  }
+  else
+  {
+    nRes = RegDeleteValue(hKey, c_strKeyNameStartup.c_str());
+    if ((nRes != ERROR_SUCCESS) && (nRes != ERROR_FILE_NOT_FOUND))
+    {
+      if (bShowErrorMsgBox)
+        Logger::showNext(true);
+      LOGERR("Error while removing key from the Registry (key: HKEY_CURRENT_USER\\%s\\%s)! Error %d: %s",
+        c_strKeyPathStartup.c_str(), c_strKeyNameStartup.c_str(), nRes, App::sysLastErrorString());
+      RegCloseKey(hKey);
+      return false;
+    }
+  }
+
+  // close registry key
+  RegCloseKey(hKey);
 
   return true;
 }
@@ -145,7 +212,6 @@ bool Config::iniReadBool (const char* pszName, bool bDefault)
   StringA str;
 
   Config::iniReadString(pszName, str);
-  str.trimWhitespaces();
   if (str.isEmpty())
   {
     return bDefault;
@@ -163,7 +229,6 @@ int Config::iniReadThreshold (const char* pszName, int iDefault)
   StringA str;
 
   Config::iniReadString(pszName, str);
-  str.trimWhitespaces();
   if (str.isEmpty() || !str.isFullOfDigits())
   {
     return iDefault;
@@ -177,23 +242,11 @@ int Config::iniReadThreshold (const char* pszName, int iDefault)
 }
 
 //---------------------------------------------------------------------------
-StringA Config::iniReadFilePath (const char* pszName)
-{
-  StringA str;
-
-  Config::iniReadString(pszName, str);
-  str.trimWhitespaces();
-  if (GetFileAttributes(str.c_str()) == INVALID_FILE_ATTRIBUTES)
-    str.clear();
-
-  return str;
-}
-
-//---------------------------------------------------------------------------
 void Config::iniReadString (const char* pszName, StringA& strOutput)
 {
   strOutput.clear();
   GetPrivateProfileString(c_pszIniSection, pszName, "",
     strOutput.acquireBuffer(1024, false), 1024-1, Config::strIniFile);
   strOutput.releaseBuffer();
+  strOutput.trimWhitespaces();
 }

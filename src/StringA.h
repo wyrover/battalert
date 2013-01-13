@@ -448,6 +448,7 @@ public :
   virtual bool    pathStripTrailingSeparator (void);
   virtual void    pathStripName              (void);
   virtual void    pathStripExtension         (void);
+  virtual bool    pathHasSeparators          (void) const;
   virtual bool    pathHasTrailingSeparator   (void) const;
   virtual void    pathExplode                (StringAVec& vecPath) const;
   virtual bool    pathCheckExtension         (const char* pszExtension) const; // case insensitive compare of the extension

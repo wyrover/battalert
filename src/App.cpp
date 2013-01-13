@@ -25,10 +25,9 @@ App::App (HINSTANCE hInstance)
   ms_pSingleton = this;
 
   // get current exe file path and remove its extension part
-  if (!::GetModuleFileNameA(::GetModuleHandleA(0), m_strExeNoExt.acquireBuffer(MAX_PATH, false), MAX_PATH))
+  if (!::GetModuleFileNameA(::GetModuleHandleA(0), m_strExePath.acquireBuffer(MAX_PATH, false), MAX_PATH))
     THROWEX("GetModuleFileName() failed! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
-  m_strExeNoExt.releaseBuffer();
-  m_strExeNoExt.pathStripExtension();
+  m_strExePath.releaseBuffer();
 }
 
 //---------------------------------------------------------------------------
@@ -42,6 +41,7 @@ App::~App (void)
 //---------------------------------------------------------------------------
 void App::uninit (void)
 {
+  Config::applyLaunchAtStartup(false);
   delete m_pWndMain;
   m_pWndMain = 0;
 }
@@ -49,13 +49,18 @@ void App::uninit (void)
 //---------------------------------------------------------------------------
 int App::init (int argc, char** argv)
 {
+  StringA strExePathNoExt;
+
   InitCommonControls();
 
+  strExePathNoExt = m_strExePath;
+  strExePathNoExt.pathStripExtension();
+
   // setup logger's output file
-  Logger::setOutFile(m_strExeNoExt + ".log");
+  Logger::setOutFile(strExePathNoExt + ".log");
 
   // load config
-  Config::setIniFile(m_strExeNoExt + ".ini");
+  Config::setIniFile(strExePathNoExt + ".ini");
   Config::load();
 
   // main window
@@ -90,10 +95,10 @@ int App::run (void)
 
 
 //---------------------------------------------------------------------------
-const StringA& App::title (void)
+const StringA& App::name (void)
 {
-  static const StringA strTitle(APP_NAME);// " v" APP_VERSION_STR);
-  return strTitle;
+  static const StringA str(APP_NAME);
+  return str;
 }
 
 //---------------------------------------------------------------------------

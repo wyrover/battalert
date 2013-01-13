@@ -2192,6 +2192,23 @@ void StringA::pathStripExtension (void)
 //---------------------------------------------------------------------------
 // pathExplode
 //---------------------------------------------------------------------------
+bool StringA::pathHasSeparators (void) const
+{
+  char* p = m_pszData;
+
+  do
+  {
+    if (StringA::charIsPathSeparator(*p))
+      return true;
+  }
+  while (*++p);
+
+  return false;
+}
+
+//---------------------------------------------------------------------------
+// pathExplode
+//---------------------------------------------------------------------------
 void StringA::pathExplode (StringAVec& vecPath) const
 {
   char* pStart;

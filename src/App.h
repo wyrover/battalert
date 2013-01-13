@@ -21,9 +21,9 @@ public :
   ~App (void);
 
   // properties
-  HINSTANCE      instance    (void);
-  const StringA& getExeNoExt (void) const;
-  WndMain*       wndMain     (void);
+  HINSTANCE      instance (void);
+  const StringA& exePath  (void) const;
+  WndMain*       wndMain  (void);
 
   // main methods
   int  init   (int argc, char** argv);
@@ -32,7 +32,7 @@ public :
 
   // static utils
   static App*           singleton          (void);
-  static const StringA& title              (void);
+  static const StringA& name               (void);
   static unsigned       sysLastError       (void);
   static const char*    sysLastErrorString (void);
   static const char*    sysGetErrorString  (unsigned uiOsError);
@@ -40,7 +40,7 @@ public :
 
 private :
   HINSTANCE m_hInstance;
-  StringA   m_strExeNoExt;
+  StringA   m_strExePath;
   WndMain*  m_pWndMain;
 
 

@@ -92,7 +92,7 @@ void WndMain::open (void)
   // prepend the application title to the popup menu
   {
     MENUITEMINFO mii;
-    StringA str(App::title());
+    StringA str(App::name());
 
     str += " (" __DATE__ " " __TIME__ ")";
     mii.cbSize     = sizeof(MENUITEMINFO);
@@ -118,6 +118,7 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
 {
   static bool bErrorLoggedDll = false;
   static bool bErrorLoggedSym = false;
+  StringA strSoundFile;
 
   m_bSoundPlaying = false;
 
@@ -148,6 +149,15 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     }
   }
 
+  // determine the location of the user's alert sound file
+  strSoundFile = Config::strAlertSoundFile;
+  if (!strSoundFile.isEmpty() && !strSoundFile.pathHasSeparators())
+  {
+    strSoundFile = g_pApp->exePath();
+    strSoundFile.pathStripName();
+    strSoundFile /= Config::strAlertSoundFile;
+  }
+
   // play sound
   while (1)
   {
@@ -155,7 +165,7 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     DWORD   dwFlags = 2 | 8 | 1; // SND_NODEFAULT | SND_LOOP | SND_ASYNC
     HMODULE hMod;
 
-    if (Config::strAlertSoundFile.isEmpty())
+    if (strSoundFile.isEmpty())
     {
       pszSound = MAKEINTRESOURCE(IDW_ALARM);
       dwFlags |= 0x40004; // SND_RESOURCE
@@ -163,7 +173,7 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
     }
     else
     {
-      pszSound = Config::strAlertSoundFile.c_str();
+      pszSound = strSoundFile.c_str();
       dwFlags |= 0x20000; // SND_FILENAME
       hMod     = 0;
     }
@@ -173,11 +183,10 @@ bool WndMain::playAlarm (UINT uiLoopDurationMS/*=0*/)
       m_bSoundPlaying = true;
       break;
     }
-    else if (!Config::strAlertSoundFile.isEmpty())
+    else if (!strSoundFile.isEmpty())
     {
-      LOGERR("Failed to play wave file \"%s\"!", Config::strAlertSoundFile.c_str());
-      Config::strAlertSoundFile.clear();
-      Config::save();
+      LOGERR("Failed to play wave file \"%s\"!", strSoundFile.c_str());
+      strSoundFile.clear();
     }
     else
     {
@@ -235,14 +244,14 @@ void WndMain::alertMessage (void)
     "run out of battery soon and that if you do nothing about it, the world "
     "will end in the worst way ever!\n"
     "(Just plug-in your computer on AC power, it will be just fine...)",
-    g_pApp->title().c_str());
+    App::name().c_str());
 
   ZeroMemory(&mbp, sizeof(mbp));
   mbp.cbSize      = sizeof(mbp);
   mbp.hwndOwner   = m_hWnd;
   mbp.hInstance   = g_pApp->instance();
   mbp.lpszText    = strMsg.c_str();
-  mbp.lpszCaption = g_pApp->title().c_str();
+  mbp.lpszCaption = App::name().c_str();
   mbp.dwStyle     = MB_USERICON | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_TOPMOST;
   mbp.lpszIcon    = MAKEINTRESOURCE(IDI_APP);
   if (MessageBoxIndirect(&mbp) != 0 && ms_pThis->isAlarmPlaying())
@@ -257,7 +266,7 @@ void WndMain::onCreate (void)
   NOTIFYICONDATA nid;
 
   // set window title
-  this->setTitle(App::title());
+  this->setTitle(App::name());
 
   // show default systray icon
   nid.cbSize           = sizeof(NOTIFYICONDATA);
@@ -343,6 +352,7 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     // update system tray icon
     {
       NOTIFYICONDATA nid;
+      UINT uiSysError;
 
       nid.cbSize = sizeof(NOTIFYICONDATA);
       nid.hWnd   = m_hWnd;
@@ -352,11 +362,12 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
 
       strcpy((char*)nid.szTip, m_BattIcon.getStatusString().c_str());
       strcat((char*)nid.szTip, " - ");
-      strcat((char*)nid.szTip, App::title().c_str());
+      strcat((char*)nid.szTip, App::name().c_str());
 
       bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
-      if (!bRes && App::sysLastError() != ERROR_TIMEOUT)
-        LOGERR("Failed to update system tray icon! Error %u: %s", App::sysLastError(), App::sysLastErrorString());
+      uiSysError = App::sysLastError();
+      if (!bRes && uiSysError && uiSysError != ERROR_TIMEOUT)
+        LOGERR("Failed to update system tray icon! Error %u: %s", uiSysError, App::sysGetErrorString(uiSysError));
     }
 
     // play an alarm sound
