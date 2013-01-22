@@ -101,7 +101,7 @@ RESOBJ_RELEASE = $(addprefix $(DIR_OBJ_RELEASE)/,$(RESOURCES:.rc=.coff))
 
 
 #----------------------------------------------------------------------------
-.PHONY: prepare debug d release r final upx all clean c mrproper
+.PHONY: prepare debug d release r final upx all clean c distclean mrproper
 
 c: clean
 d: debug
@@ -131,8 +131,9 @@ final: clean release upx
 all: debug release
 
 clean:
-	-$(RMDIR) $(subst /,\,$(DIR_BIN) $(DIR_OBJ))
+	-$(RMDIR) $(subst /,\,$(DIR_BIN) $(DIR_OBJ)) 2>nul
 
+distclean: clean
 mrproper: clean
 
 
