@@ -464,7 +464,7 @@ inline void StringA::operator= (const STRA_INT64 i)
   char tmp[32];
   int  nLen;
 
-  nLen = sprintf((char*)&tmp, "%I64d", i);
+  nLen = sprintf((char*)&tmp, "%lld", i);
   this->grow((STRA_UINT)nLen + 1, false);
   memcpy(m_pszData, (char*)&tmp, size_t(nLen + 1));
   m_uiLength = (STRA_UINT)nLen;
@@ -476,7 +476,7 @@ inline void StringA::operator= (const STRA_UINT64 ui)
   char tmp[32];
   int  nLen;
 
-  nLen = sprintf((char*)&tmp, "%I64u", ui);
+  nLen = sprintf((char*)&tmp, "%llu", ui);
   this->grow((STRA_UINT)nLen + 1, false);
   memcpy(m_pszData, (char*)&tmp, size_t(nLen + 1));
   m_uiLength = (STRA_UINT)nLen;
@@ -545,7 +545,7 @@ inline void StringA::append (const STRA_UINT32 ui)
 inline void StringA::append (const STRA_INT64 i)
 {
   char tmp[32];
-  sprintf((char*)&tmp, "%I64d", i);
+  sprintf((char*)&tmp, "%lld", i);
   this->append((char*)&tmp);
 }
 
@@ -553,7 +553,7 @@ inline void StringA::append (const STRA_INT64 i)
 inline void StringA::append (const STRA_UINT64 ui)
 {
   char tmp[32];
-  sprintf((char*)&tmp, "%I64u", ui);
+  sprintf((char*)&tmp, "%llu", ui);
   this->append((char*)&tmp);
 }
 
