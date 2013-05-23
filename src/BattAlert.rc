@@ -30,9 +30,52 @@
 //***************************************************************************
 
 #include <windows.h>
-//#include <commctrl.h>
+#include <commctrl.h>
 //#include <richedit.h>
 #include "resource.h"
+#include "version.h"
+
+
+//---------------------------------------------------------------------------
+// Version
+//---------------------------------------------------------------------------
+1 VERSIONINFO
+    FILEVERSION     APP_VERSION_MSFORMAT
+    PRODUCTVERSION  APP_VERSION_MSFORMAT
+    FILEOS          VOS__WINDOWS32
+    FILETYPE        VFT_APP
+    FILESUBTYPE     VFT2_UNKNOWN
+#ifdef _DEBUG
+    FILEFLAGSMASK   0x00000001
+    FILEFLAGS       0x00000001
+#else
+    FILEFLAGSMASK   0x00000000
+    FILEFLAGS       0x00000000
+#endif
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E2"
+        BEGIN
+            VALUE "Comments",         APP_TIMESTAMP_MSG
+            VALUE "CompanyName",      APP_AUTHOR "\r\n" APP_URL
+            VALUE "FileDescription",  APP_NAME " Application"
+            VALUE "FileVersion",      APP_REVISION_STR
+            VALUE "InternalName",     APP_NAME
+            VALUE "LegalCopyright",   APP_COPYRIGHT
+            //VALUE "LegalTrademarks",  ""
+            VALUE "OriginalFilename", APP_EXENAME
+            //VALUE "PrivateBuild",     ""
+            VALUE "ProductName",      APP_NAME
+            VALUE "ProductVersion",   APP_VERSION_STR
+            //VALUE "SpecialBuild",     ""
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 0x04E2
+    END
+END
 
 
 //---------------------------------------------------------------------------
