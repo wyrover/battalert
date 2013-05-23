@@ -34,14 +34,6 @@
 
 
 //---------------------------------------------------------------------------
-// Branding :)
-//---------------------------------------------------------------------------
-#define APP_NAME         "BattAlert" // keep it as a single word (no whitespaces) !
-//efine APP_VERSION_STR  "0.1"
-//efine APP_TIMESTAMP    "Compiled on " __DATE__ " at " __TIME__
-
-
-//---------------------------------------------------------------------------
 // Constants (General Purpose)
 //---------------------------------------------------------------------------
 // those values must *never* be modified accross releases
@@ -156,6 +148,7 @@ typedef BOOL (WINAPI* FNPLAYSOUNDA)(LPCSTR,HMODULE,DWORD);
 //---------------------------------------------------------------------------
 // Local Headers
 //---------------------------------------------------------------------------
+#include "version.h"
 #include "resource.h"
 
 #include "Logger.h"

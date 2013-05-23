@@ -65,6 +65,7 @@ private :
   void onCreate          (void);
   void onDestroy         (void);
   void onPopupMenu       (const POINT& ptPos);
+  void onAbout           (void);
   void onConfigDialog    (void);
   void onPollPowerStatus (bool bForceRefresh);
 

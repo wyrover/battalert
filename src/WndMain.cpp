@@ -116,14 +116,14 @@ void WndMain::open (void)
     MENUITEMINFO mii;
     StringA str(App::name());
 
-    str += " (" __DATE__ " " __TIME__ ")";
+    str += " " APP_VERSION_STR;
     mii.cbSize     = sizeof(MENUITEMINFO);
-    mii.fMask      = MIIM_FTYPE | MIIM_STRING | MIIM_STATE;
+    mii.fMask      = MIIM_FTYPE | MIIM_ID | MIIM_STRING | MIIM_STATE;
     mii.fType      = MFT_STRING;
-    mii.fState     = MFS_DISABLED;
+    mii.fState     = MFS_ENABLED;
+    mii.wID        = IDM_ABOUT;
     mii.dwTypeData = (char*)str.c_str();
     mii.cch        = str.length();
-
     InsertMenuItem(m_hMenuMainPopup, 0, TRUE, &mii);
   }
 
@@ -336,6 +336,12 @@ void WndMain::onPopupMenu (const POINT& pt)
 }
 
 //---------------------------------------------------------------------------
+void WndMain::onAbout (void)
+{
+    ShellExecute(m_hWnd, "open", APP_URL, NULL, NULL, SW_SHOWNORMAL);
+}
+
+//---------------------------------------------------------------------------
 void WndMain::onConfigDialog (void)
 {
   WndConfig wndConfig;
@@ -460,6 +466,10 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       {
         case IDM_QUIT :
           ms_pThis->destroy();
+          break;
+
+        case IDM_ABOUT :
+          ms_pThis->onAbout();
           break;
 
         case IDM_CONFIGDIALOG :

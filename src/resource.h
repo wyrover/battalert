@@ -51,8 +51,9 @@
 //---------------------------------------------------------------------------
 #define IDM_POPUP_MAIN    201
 #define IDM_QUIT          202
-#define IDM_CONFIGDIALOG  203
-#define IDM_ALARM         204
+#define IDM_ABOUT         203
+#define IDM_CONFIGDIALOG  204
+#define IDM_ALARM         205
 
 
 //---------------------------------------------------------------------------
