@@ -110,7 +110,7 @@ LDFLAGS_RELEASE =
 
 PVERFLAGS_COMMON  = "$(DIR_ROOT)"
 PVERFLAGS_COMMON += -D "PROJECT_NAME=%!$(PROJECT_NAME)"
-PVERFLAGS_COMMON += -D "VERSION=head VERSION|cat .|var REVISION"
+PVERFLAGS_COMMON += -D "VERSION=head VERSION|append .|var REVISION"
 PVERFLAGS_COMMON += -D "VERSION_WIN=var VERSION|winver"
 PVERFLAGS_DEBUG   = -D _DEBUG --loosy
 PVERFLAGS_RELEASE = -D NDEBUG
@@ -210,7 +210,7 @@ $(DIR_OBJ_RELEASE)/%.coff: $(DIR_SRC)/%.rc $(DIR_SRC)/version.h
 
 
 $(DIR_SRC)/%.h: $(DIR_SRC)/%.h.in
-	$(subst /,\,$(PVER)) $(PVERFLAGS) -t "$<;$@"
+	$(subst /,\,$(PVER)) $(PVERFLAGS) "$<;$@"
 
 
 $(DIR_OBJ_DEBUG)/%.o: $(DIR_SRC)/%.cpp $(FINAL_HEADERS)
