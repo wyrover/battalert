@@ -371,6 +371,8 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
   }
   else
   {
+    static UINT uiLastModifyIconError = 0;
+
     HICON hIcon;
     BOOL  bRes;
 
@@ -380,8 +382,6 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
     // update system tray icon
     {
       NOTIFYICONDATA nid;
-      UINT uiSysError;
-
       nid.cbSize = sizeof(NOTIFYICONDATA);
       nid.hWnd   = m_hWnd;
       nid.uID    = SYSTRAYICON_ID;
@@ -393,9 +393,26 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
       strcat((char*)nid.szTip, App::name().c_str());
 
       bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
-      uiSysError = App::sysLastError();
-      if (!bRes && uiSysError && uiSysError != ERROR_TIMEOUT)
-        LOGERR("Failed to update system tray icon! Error %u: %s", uiSysError, App::sysGetErrorString(uiSysError));
+      if (bRes)
+      {
+        if (uiLastModifyIconError != 0)
+        {
+          LOGINFO("System tray icon is now up-to-date.");
+          uiLastModifyIconError = 0;
+        }
+      }
+      else
+      {
+        UINT uiSysError = App::sysLastError();
+        if (uiSysError != ERROR_TIMEOUT)
+        {
+          if (uiSysError != uiLastModifyIconError)
+          {
+            LOGERR("Failed to update system tray icon! Error %u: %s", uiSysError, App::sysGetErrorString(uiSysError));
+            uiLastModifyIconError = uiSysError;
+          }
+        }
+      }
     }
 
     // play an alarm sound
