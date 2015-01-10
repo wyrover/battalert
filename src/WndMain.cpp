@@ -448,11 +448,18 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
 //---------------------------------------------------------------------------
 LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 {
+  static UINT uiMsgTaskbarCreated = 0;
+
   POINT pt;
 
   switch (uiMsg)
   {
     case WM_CREATE :
+      // the "TaskbarCreated" message is sent by the shell when the task
+      // tray has been created. we need to catch it in case exporer.exe
+      // crashed, to force display our icon again.
+      uiMsgTaskbarCreated = RegisterWindowMessage(TEXT("TaskbarCreated"));
+
       ms_pThis->m_hWnd = hWnd;
       ms_pThis->onCreate();
       break;
@@ -543,7 +550,12 @@ LRESULT CALLBACK WndMain::wndProc (HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM 
       }
       break;
 
-    default :
+    default:
+      if (uiMsg == uiMsgTaskbarCreated)
+      {
+        LOGDBG("Received TaskbarCreated system message");
+        ms_pThis->onPollPowerStatus(true);
+      }
       return DefWindowProc(hWnd, uiMsg, wParam, lParam);
   }
 
