@@ -373,26 +373,57 @@ void WndMain::onPollPowerStatus (bool bForceRefresh)
   {
     static UINT uiLastModifyIconError = 0;
 
-    HICON hIcon;
-    BOOL  bRes;
+    HICON   hIcon;
+    BOOL    bRes;
+    StringA strTip;
 
     // get new icon to show
     hIcon = m_BattIcon.refresh();
 
+    // prepare tip text
+    strTip  = m_BattIcon.getStatusString();
+    strTip += " - ";
+    strTip += App::name();
+
     // update system tray icon
     {
       NOTIFYICONDATA nid;
-      nid.cbSize = sizeof(NOTIFYICONDATA);
-      nid.hWnd   = m_hWnd;
-      nid.uID    = SYSTRAYICON_ID;
-      nid.uFlags = NIF_ICON | NIF_TIP;
-      nid.hIcon  = hIcon;
 
-      strcpy((char*)nid.szTip, m_BattIcon.getStatusString().c_str());
-      strcat((char*)nid.szTip, " - ");
-      strcat((char*)nid.szTip, App::name().c_str());
+      // remove systray icon first
+      if (bForceRefresh)
+      {
+        nid.cbSize = sizeof(NOTIFYICONDATA);
+        nid.hWnd   = m_hWnd;
+        nid.uID    = SYSTRAYICON_ID;
+        nid.uFlags = NIF_ICON;
+        Shell_NotifyIcon(NIM_DELETE, &nid);
 
-      bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
+        nid.cbSize           = sizeof(NOTIFYICONDATA);
+        nid.hWnd             = m_hWnd;
+        nid.uID              = SYSTRAYICON_ID;
+        nid.uFlags           = NIF_ICON | NIF_TIP | NIF_MESSAGE;
+        nid.uCallbackMessage = APP_UNIQUE_WM_SYSTRAYICON;
+        nid.hIcon            = hIcon;
+        strcpy((char*)nid.szTip, strTip.c_str());
+        bRes = Shell_NotifyIcon(NIM_ADD, &nid);
+
+        // reset last error state since we deleted the icon first
+        uiLastModifyIconError = 0;
+      }
+      else
+      {
+        // if Shell_NotifyIcon() is used with a more recent version of the
+        // NOTIFYICONDATA structure, the tip member always has to be
+        // specified (i.e.: even if its content doesn't have to be modified)
+        nid.cbSize = sizeof(NOTIFYICONDATA);
+        nid.hWnd   = m_hWnd;
+        nid.uID    = SYSTRAYICON_ID;
+        nid.uFlags = NIF_ICON | NIF_TIP;
+        nid.hIcon  = hIcon;
+        strcpy((char*)nid.szTip, strTip.c_str());
+        bRes = Shell_NotifyIcon(NIM_MODIFY, &nid);
+      }
+
       if (bRes)
       {
         if (uiLastModifyIconError != 0)
