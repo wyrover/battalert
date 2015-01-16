@@ -3,7 +3,7 @@
 # BattAlert
 # A minimalistic battery monitor for Win32.
 #
-# Copyright (C) 2011-2013 Jean-Charles Lefebvre <jcl [AT] jcl [DOT] io>
+# Copyright 2011-2013 Jean-Charles Lefebvre <polyvertex@gmail.com>
 #
 # This software is provided 'as-is', without any express or implied
 # warranty.  In no event will the authors be held liable for any damages
