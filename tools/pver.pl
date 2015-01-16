@@ -3,7 +3,7 @@
 # PVer
 # A source revision fetcher and pre-processor.
 #
-# Copyright (C) 2013 Jean-Charles Lefebvre <jcl [AT] jcl [DOT] io>
+# Copyright 2013-2014 Jean-Charles Lefebvre <polyvertex@gmail.com>
 #
 # This software is provided 'as-is', without any express or implied
 # warranty.  In no event will the authors be held liable for any damages
@@ -22,10 +22,7 @@
 # 3. This notice may not be removed or altered from any source distribution.
 #
 #
-# Author:     Jean-Charles Lefebvre
-# Created On: 2013-05-22 11:31:29Z
-#
-# $Id: pver.pl 35 2014-12-03 14:47:58Z jcl $
+# $Id: pver.pl 41 2015-01-16 15:06:52Z jcl $
 #
 
 use strict;
@@ -65,9 +62,9 @@ Usage:
     Sort of 'sed' command combined with some RCS detection and variables
     definition and manipulation.
 
-    This script reads the current status of a specified project directory that
-    is managed with GIT or SVN (basically hash/tag/revision and if working dir
-    is dirty), and allows to perform some file transformation using these
+    This script reads the current status of a specified project directory
+    managed with GIT or SVN (basically hash/tag/revision and if working dir is
+    dirty), and allows to perform some file transformation using these
     informations.
 
     A typical use is release versioning.
@@ -76,7 +73,7 @@ Usage:
     has been developed with Windows in mind, which natively lacks the
     convenience of those sed/grep/... tools from the Unix world.
 
-    Actually, if you're on Unix derived platform, avoid this script at all cost.
+    Actually, if you're on Unix derived platform, avoid this script at any cost.
 
 Requirements:
     A minimal install of Perl, only core modules are used.
@@ -137,7 +134,7 @@ Options:
         * RCSNAME
           The name of the detected RCS: 'git', 'svn' or 'unknown'.
         * REVISION
-          The revision number/hash/string as fetched from the RCS.
+          The revision number/hash as fetched from the RCS.
           In case of a git hash, the full length hash is always assigned here.
           Use the GIT_SHORT variable to get the abbreviated form.
         * DIRTY
@@ -148,6 +145,8 @@ Options:
           The abbreviated form of the last commit hash.
           Its length is variable, usually 7, because git uses as many digits as
           needed to form a unique object name.
+        * GIT_BRANCH
+          The name of the currently selected branch.
         * GIT_TAG
           The name of the last tag directly fetched from git.
         * GIT_TAGCOMMITS
@@ -160,6 +159,16 @@ Options:
         * GIT_TAGTITLE
           The title part of the tag name if there is any.
           Example: in tag 'v0.1-hello-world', the title would be 'hello-world'.
+        * GIT_FIRST
+          The full hash of the root commit in git.
+          You must use the --git-lifespan option to have this variable defined.
+        * GIT_FIRST_UNIX
+          The unix timestamp of the root commit in git.
+          This is the commit date, not author date.
+          You must use the --git-lifespan option to have this variable defined.
+        * GIT_LIFE_DAYS
+          The number of days between the first commit to today.
+          You must use the --git-lifespan option to have this variable defined.
 
     --force
         Force replace output files.
@@ -187,9 +196,13 @@ Options:
 
 Git specific options:
     --git-alltags
-        Instead of using only the annotated tags, use any tag found in refs/tags
-        namespace. This option enables matching a lightweight (non-annotated)
-        tag.
+        Instead of searching only for annotated tags, use any tag found in
+        refs/tags namespace. This option enables matching a lightweight
+        (non-annotated) tag.
+
+    --git-lifespan
+        Allows to get the GIT_FIRST, GIT_FIRST_UNIX and GIT_LIFE_DAYS variables.
+        Crawling the complete history of a repository can take a while.
 
 Functions:
     The arguments of the following functions must be space-separated. Because of
@@ -651,12 +664,13 @@ my %ctx = ( # global context
     list   => undef,
     define => [ ],
 
-    call_dir    => undef,
-    root_dir    => undef,
-    git_alltags => undef,
-    tag_prefix  => TAG_PREFIX,
-    tag_suffix  => TAG_SUFFIX,
-    vars        => { },
+    call_dir     => undef,
+    root_dir     => undef,
+    git_alltags  => undef,
+    git_lifespan => undef,
+    tag_prefix   => TAG_PREFIX,
+    tag_suffix   => TAG_SUFFIX,
+    vars         => { },
 );
 
 BEGIN { $| = 1; }
@@ -670,6 +684,7 @@ END { Cwd::chdir($ctx{call_dir}) if defined $ctx{call_dir}; }
         'define|d=s@'  => \$ctx{define},
         'force'        => \$ctx{force},
         'git-alltags'  => \$ctx{git_alltags},
+        'git-lifespan' => \$ctx{git_lifespan},
         'list|l'       => \$ctx{list},
         'quiet|q'      => \$ctx{quiet},
         'strict'       => \$ctx{strict},
@@ -752,9 +767,21 @@ elsif (-d '.git' or -d '_git')
     # * arbitrary-tag-name-dirty
 
     my $describe;
-    my $revparse;
 
-    # call describe
+    $ctx{vars}{RCSNAME}        = 'git';
+    $ctx{vars}{REVISION}       = '';
+    $ctx{vars}{DIRTY}          = 0;
+    $ctx{vars}{GIT_SHORT}      = '';
+    $ctx{vars}{GIT_BRANCH}     = '';
+    $ctx{vars}{GIT_TAG}        = '';
+    $ctx{vars}{GIT_TAGCOMMITS} = 0;
+    $ctx{vars}{GIT_TAGVERSION} = '';
+    $ctx{vars}{GIT_TAGTITLE}   = '';
+    #$ctx{vars}{GIT_FIRST}      = 'Use the --git-lifespan option to get this value';
+    #$ctx{vars}{GIT_FIRST_UNIX} = 0;
+    #$ctx{vars}{GIT_LIFE_DAYS}  = 0;
+
+    # describe head
     {
         my $cmd =
             'git describe '.
@@ -770,7 +797,7 @@ elsif (-d '.git' or -d '_git')
         $describe = $result[0];
     }
 
-    # call rev-parse
+    # head commit
     {
         my $cmd = 'git rev-parse HEAD';
         my @result = qx/$cmd/;
@@ -778,22 +805,66 @@ elsif (-d '.git' or -d '_git')
 
         die "Something went wrong while running command: $cmd (code ", ($code >> 8), ")\n"
             unless $code == 0;
-
-        chomp $result[0];
-        $revparse = $result[0];
-
         die "Could not interpret result of call: $cmd\n"
-            unless $revparse =~ /^([a-h\d]{4,40})$/;
+            unless $result[0] =~ /^\s*([a-h\d]{4,40})\s*$/;
+
+        $ctx{vars}{REVISION} = $1;
     }
 
-    $ctx{vars}{RCSNAME}        = 'git';
-    $ctx{vars}{REVISION}       = $revparse;
-    $ctx{vars}{DIRTY}          = 0;
-    $ctx{vars}{GIT_SHORT}      = '';
-    $ctx{vars}{GIT_TAG}        = '';
-    $ctx{vars}{GIT_TAGCOMMITS} = 0;
-    $ctx{vars}{GIT_TAGVERSION} = '';
-    $ctx{vars}{GIT_TAGTITLE}   = '';
+    # head branch name
+    {
+        my $cmd = 'git branch --list --no-color --contains HEAD';
+        my @result = qx/$cmd/;
+        my $code = $?;
+
+        die "Something went wrong while running command: $cmd (code ", ($code >> 8), ")\n"
+            unless $code == 0;
+
+        # there might be several branches, but the one we want is the currently
+        # selected branch, which is flagged with a '*' prefix
+        foreach (@result)
+        {
+            if (/^\*\s+([^\s]+)\s*$/)
+            {
+                $ctx{vars}{GIT_BRANCH} = $1;
+                last;
+            }
+        }
+        die "Could not interpret result of call: $cmd\n"
+            unless defined($ctx{vars}{GIT_BRANCH})
+            and length($ctx{vars}{GIT_BRANCH}) > 0;
+    }
+
+    # get the first commit ever
+    # a.k.a "get the first root commit we can find and hope it's the only one or
+    # the right one"
+    if ($ctx{git_lifespan})
+    {
+        my $cmd = 'git rev-list --max-parents=0 HEAD';
+        my @result = qx/$cmd/;
+        my $code = $?;
+
+        die "Something went wrong while running command: $cmd (code ", ($code >> 8), ")\n"
+            unless $code == 0;
+        die "Could not interpret result of call: $cmd\n"
+            unless $result[0] =~ /^\s*([a-h\d]{40})\s*$/;
+
+        $ctx{vars}{GIT_FIRST} = $1;
+
+        $cmd = 'git show -s --format="%ct" '.$ctx{vars}{GIT_FIRST};
+        @result = qx/$cmd/;
+        $code = $?;
+
+        die "Something went wrong while running command: $cmd (code ", ($code >> 8), ")\n"
+            unless $code == 0;
+        die "Could not interpret result of call: $cmd\n"
+            unless $result[0] =~ /^\s*(\d+)\s*$/;
+
+        $ctx{vars}{GIT_FIRST_UNIX} = $1;
+        $ctx{vars}{GIT_LIFE_DAYS}  =
+            (time() >= $ctx{vars}{GIT_FIRST_UNIX}) ?
+            int((time() - $ctx{vars}{GIT_FIRST_UNIX}) / 86400) : 0;
+    }
 
     if ($describe =~ /^([a-h\d]{4,40})(\-dirty)?$/)
     {
