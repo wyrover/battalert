@@ -36,10 +36,9 @@
 #define APP_NAME     "@PROJECT_NAME@" // CAUTION: no whitespaces!
 #define APP_EXENAME  "@EXE_NAME@"
 
-#define APP_TIMESTAMP_MSG     "Compiled on " __DATE__ " at " __TIME__
-#define APP_VERSION_STR       "@VERSION@"
-#define APP_VERSION_MSFORMAT  @VERSION_WIN@
-#define APP_REVISION_STR      "@REVISION@"
+#define APP_TIMESTAMP_MSG  "Compiled on " __DATE__ " at " __TIME__
+#define APP_VERSION_STR    "@VERSION_STR@"
+#define APP_VERSION_WIN    @VERSION_WIN@
 
 
 #endif // #ifndef __version_h__

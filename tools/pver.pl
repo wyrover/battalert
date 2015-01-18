@@ -3,7 +3,7 @@
 # PVer
 # A source revision fetcher and pre-processor.
 #
-# Copyright 2013-2014 Jean-Charles Lefebvre <polyvertex@gmail.com>
+# Copyright 2013-2015 Jean-Charles Lefebvre <polyvertex@gmail.com>
 #
 # This software is provided 'as-is', without any express or implied
 # warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 # 3. This notice may not be removed or altered from any source distribution.
 #
 #
-# $Id: pver.pl 41 2015-01-16 15:06:52Z jcl $
+# $Id: pver.pl 44 2015-01-18 21:42:25Z jcl $
 #
 
 use strict;
@@ -36,11 +36,8 @@ use POSIX ();
 
 use constant
 {
-    RESERVED_VARS => [
-        'DIRTY', 'PROJECTDIR', 'RCSNAME', 'REVISION', 'GIT_SHORT',
-        'GIT_TAG', 'GIT_TAGCOMMITS', 'GIT_TAGTITLE', 'GIT_TAGVERSION' ],
-    TAG_PREFIX    => '@',
-    TAG_SUFFIX    => '@',
+    TAG_PREFIX => '@',
+    TAG_SUFFIX => '@',
 };
 
 
@@ -145,6 +142,8 @@ Options:
           The abbreviated form of the last commit hash.
           Its length is variable, usually 7, because git uses as many digits as
           needed to form a unique object name.
+        * GIT_DESCRIBE
+          The resulting string of the 'git describe' command.
         * GIT_BRANCH
           The name of the currently selected branch.
         * GIT_TAG
@@ -664,13 +663,14 @@ my %ctx = ( # global context
     list   => undef,
     define => [ ],
 
-    call_dir     => undef,
-    root_dir     => undef,
-    git_alltags  => undef,
-    git_lifespan => undef,
-    tag_prefix   => TAG_PREFIX,
-    tag_suffix   => TAG_SUFFIX,
-    vars         => { },
+    call_dir      => undef,
+    root_dir      => undef,
+    git_alltags   => undef,
+    git_lifespan  => undef,
+    tag_prefix    => TAG_PREFIX,
+    tag_suffix    => TAG_SUFFIX,
+    vars          => { },
+    reserved_vars => { },
 );
 
 BEGIN { $| = 1; }
@@ -766,11 +766,10 @@ elsif (-d '.git' or -d '_git')
     # * arbitrary-tag-name
     # * arbitrary-tag-name-dirty
 
-    my $describe;
-
     $ctx{vars}{RCSNAME}        = 'git';
     $ctx{vars}{REVISION}       = '';
     $ctx{vars}{DIRTY}          = 0;
+    $ctx{vars}{GIT_DESCRIBE}   = '';
     $ctx{vars}{GIT_SHORT}      = '';
     $ctx{vars}{GIT_BRANCH}     = '';
     $ctx{vars}{GIT_TAG}        = '';
@@ -794,7 +793,7 @@ elsif (-d '.git' or -d '_git')
             unless $code == 0;
 
         chomp $result[0];
-        $describe = $result[0];
+        $ctx{vars}{GIT_DESCRIBE} = $result[0];
     }
 
     # head commit
@@ -866,7 +865,7 @@ elsif (-d '.git' or -d '_git')
             int((time() - $ctx{vars}{GIT_FIRST_UNIX}) / 86400) : 0;
     }
 
-    if ($describe =~ /^([a-h\d]{4,40})(\-dirty)?$/)
+    if ($ctx{vars}{GIT_DESCRIBE} =~ /^([a-h\d]{4,40})(\-dirty)?$/)
     {
         # here, no tag was found
         # possible forms:
@@ -875,7 +874,7 @@ elsif (-d '.git' or -d '_git')
         $ctx{vars}{GIT_SHORT} = $1;
         $ctx{vars}{DIRTY}      = defined($2) ? 1 : 0;
     }
-    elsif ($describe =~ /^(.+)\-(\d+)\-g?([a-h\d]{4,40})(\-dirty)?$/)
+    elsif ($ctx{vars}{GIT_DESCRIBE} =~ /^(.+)\-(\d+)\-g?([a-h\d]{4,40})(\-dirty)?$/)
     {
         # here, a tag was found and there have been commits on the top of it
         # possible forms:
@@ -886,7 +885,7 @@ elsif (-d '.git' or -d '_git')
         $ctx{vars}{GIT_SHORT}      = $3;
         $ctx{vars}{DIRTY}          = defined($4) ? 1 : 0;
     }
-    elsif ($describe =~ /^(.+?)(\-dirty)?$/)
+    elsif ($ctx{vars}{GIT_DESCRIBE} =~ /^(.+?)(\-dirty)?$/)
     {
         # +? -> match 1 or more times, NOT GREEDILY
         # this is important to handle BOTH cases (i.e.: with or without the
@@ -897,7 +896,7 @@ elsif (-d '.git' or -d '_git')
         $ctx{vars}{DIRTY}   = defined($4) ? 1 : 0;
     }
 
-    die "Strict mode does not allow non-tagged revisions. Git's output was: $describe\n"
+    die "Strict mode does not allow non-tagged revisions. Git's output was: ".$ctx{vars}{GIT_DESCRIBE}."\n"
         if $ctx{strict} and length($ctx{vars}{GIT_TAG}) == 0;
     die "Strict mode requires the last commit to be tagged. Disable strict mode to bypass.\n"
         if $ctx{strict} and $ctx{vars}{GIT_TAGCOMMITS} > 0;
@@ -947,6 +946,9 @@ else
 warn uc($ctx{vars}{RCSNAME}), " detected.\n"
     unless $ctx{quiet} or $ctx{list} or $ctx{vars}{RCSNAME} eq 'unknown';
 
+# build the 'reserved variables' dictionary
+$ctx{reserved_vars}{$_} = 1 foreach (keys %{$ctx{vars}});
+
 # define more variables if needed
 foreach my $expression (@{$ctx{define}})
 {
@@ -958,7 +960,7 @@ foreach my $expression (@{$ctx{define}})
     die "Invalid variable name \"$key\"!\n"
         unless $key =~ /^\w+$/;
     die "Reserved variable \"$key\" cannot be redefined!\n"
-        if grep { $key eq $_ } @{RESERVED_VARS()};
+        if exists $ctx{reserved_vars}{$key};
 
     my @stack = split /\|/, $command;
     if (substr($stack[0], 0, 2) eq '%!')

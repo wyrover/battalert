@@ -36,8 +36,8 @@
 // Version
 //---------------------------------------------------------------------------
 1 VERSIONINFO
-    FILEVERSION     APP_VERSION_MSFORMAT
-    PRODUCTVERSION  APP_VERSION_MSFORMAT
+    FILEVERSION     APP_VERSION_WIN
+    PRODUCTVERSION  APP_VERSION_WIN
     FILEOS          VOS__WINDOWS32
     FILETYPE        VFT_APP
     FILESUBTYPE     VFT2_UNKNOWN
@@ -56,7 +56,7 @@ BEGIN
             VALUE "Comments",         APP_TIMESTAMP_MSG
             VALUE "CompanyName",      APP_AUTHOR "\r\n" APP_URL
             VALUE "FileDescription",  APP_NAME " Application"
-            VALUE "FileVersion",      APP_REVISION_STR
+            VALUE "FileVersion",      APP_VERSION_STR
             VALUE "InternalName",     APP_NAME
             VALUE "LegalCopyright",   APP_COPYRIGHT
             //VALUE "LegalTrademarks",  ""
