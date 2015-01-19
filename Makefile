@@ -21,11 +21,7 @@
 #    be misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 #
-#
-# Author     : Jean-Charles Lefebvre
-# Created On : 2013-01-09 15:30:56
-#
-# $Id$
+# Created On: 2013-01-09 15:30:56
 #
 #****************************************************************************
 
